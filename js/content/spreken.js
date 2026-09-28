@@ -37,10 +37,31 @@ export const SPEAK_QUESTIONS = [
   V(28, 'Welke kleur heeft uw jas?', 'De quelle couleur est votre manteau ?', ['Mijn jas is zwart.', 'Mijn jas is blauw.'], 'Couleurs : rood, blauw, groen, geel, zwart, wit.', ['jas']),
   V(29, 'Leest u graag?', 'Aimez-vous lire ?', ['Ja, ik lees graag boeken.', 'Nee, ik lees niet zo graag.'], 'Même structure que « Kookt u graag? ».', ['lees']),
   V(30, 'Hoe gaat het met u?', 'Comment allez-vous ?', ['Goed, dank u. En met u?', 'Het gaat goed, dank u wel.'], 'Réponse polie standard, et on retourne la question : « En met u? ».', ['goed']),
+  // Questions sur des situations du quotidien (style de la partie 1 de l’examen).
+  V(31, 'Wat koop je bij de apotheek?', 'Qu’achètes-tu à la pharmacie ?', ['Bij de apotheek koop ik medicijnen.'], 'Reprenez les mots de la question : « Bij de apotheek koop ik… ».', ['medicijn', 'koop']),
+  V(32, 'Wat doe je op een vrije dag?', 'Que fais-tu un jour de congé ?', ['Op een vrije dag ga ik wandelen.', 'Ik ga naar mijn familie.'], 'Après « Op een vrije dag », le verbe vient tout de suite : « …ga ik… ».', ['vrije', 'ga', 'dag']),
+  V(33, 'Wat kook je voor je familie?', 'Que cuisines-tu pour ta famille ?', ['Ik kook rijst met groente.', 'Ik kook soep.'], '« Ik kook » + plat.', ['kook']),
+  V(34, 'Waar koop je brood?', 'Où achètes-tu du pain ?', ['Ik koop brood bij de bakker.', 'Bij de supermarkt.'], 'Un lieu : « bij de bakker », « in de supermarkt ».', ['bakker', 'supermarkt', 'winkel']),
+  V(35, 'Hoe ga je naar de supermarkt?', 'Comment vas-tu au supermarché ?', ['Ik ga met de fiets.', 'Ik ga lopend naar de supermarkt.'], '« met de fiets / met de auto / lopend ».', ['fiets', 'lopend', 'auto', 'bus']),
+  V(36, 'Wanneer ga je naar de dokter?', 'Quand vas-tu chez le médecin ?', ['Als ik ziek ben, ga ik naar de dokter.'], '« Als ik ziek ben » = quand je suis malade.', ['ziek']),
+  V(37, 'Wie helpt jou in huis?', 'Qui t’aide à la maison ?', ['Mijn man helpt mij.', 'Mijn kinderen helpen mij.'], 'Une personne : « mijn man », « mijn moeder »…', ['helpt', 'helpen']),
+  V(38, 'Waarom leer je Nederlands?', 'Pourquoi apprends-tu le néerlandais ?', ['Ik leer Nederlands, want ik ga in Nederland wonen.'], 'Une raison avec « want ».', ['want', 'nederland']),
+  V(39, 'Hoe vaak doe je boodschappen?', 'Combien de fois fais-tu les courses ?', ['Ik doe twee keer per week boodschappen.'], 'Fréquence : « één keer per week », « elke dag ».', ['keer', 'week', 'dag']),
+  V(40, 'Wat drink je bij het ontbijt?', 'Que bois-tu au petit-déjeuner ?', ['Bij het ontbijt drink ik thee.'], '« Bij het ontbijt » + verbe + « ik ».', ['drink']),
+  V(41, 'Wat doe je als het regent?', 'Que fais-tu quand il pleut ?', ['Als het regent, blijf ik thuis.', 'Dan neem ik een paraplu.'], '« Als het regent, … » puis verbe + sujet.', ['regent', 'thuis', 'paraplu']),
+  V(42, 'Waar speel je met de kinderen?', 'Où joues-tu avec les enfants ?', ['Ik speel met de kinderen in het park.'], 'Lieu : « in het park », « in de tuin ».', ['park', 'tuin', 'speel']),
+  V(43, 'Wat neem je mee naar het strand?', 'Qu’emportes-tu à la plage ?', ['Ik neem een handdoek en water mee.'], 'Verbe séparable : « Ik neem … mee ».', ['mee', 'neem']),
+  V(44, 'Hoe laat eet je ’s avonds?', 'À quelle heure manges-tu le soir ?', ['Ik eet om zes uur.'], 'Heure : « om zes uur ».', ['uur', 'eet']),
+  V(45, 'Wat trek je aan als het koud is?', 'Que mets-tu quand il fait froid ?', ['Dan trek ik een jas aan.', 'Ik trek een warme jas aan.'], 'Verbe séparable : « Ik trek een jas aan ».', ['jas', 'trui']),
+  V(46, 'Wie bel je als je ziek bent?', 'Qui appelles-tu quand tu es malade ?', ['Ik bel de huisarts.'], 'Personne : « de huisarts », « mijn baas ».', ['huisarts', 'dokter', 'bel']),
+  V(47, 'Wat koop je op de markt?', 'Qu’achètes-tu au marché ?', ['Op de markt koop ik fruit en vis.'], '« Op de markt koop ik… ».', ['koop']),
+  V(48, 'Waar wacht je op de bus?', 'Où attends-tu le bus ?', ['Ik wacht bij de bushalte.'], '« bij de bushalte » = à l’arrêt de bus.', ['bushalte', 'halte']),
+  V(49, 'Wat doe je voordat je gaat slapen?', 'Que fais-tu avant d’aller dormir ?', ['Ik poets mijn tanden.', 'Ik lees een boek.'], 'Une action simple au présent.', ['tanden', 'lees', 'poets']),
+  V(50, 'Met wie woon je samen?', 'Avec qui habites-tu ?', ['Ik woon samen met mijn partner.', 'Ik woon met mijn man en mijn kinderen.'], '« Ik woon (samen) met… ».', ['woon', 'met']),
 ];
 
 // Partie 2 — phrases à compléter : context (phrase entendue), start (début à compléter), answers (fins acceptées), full (phrase modèle).
-const A = (n, context, start, answers, full, fr) => ({ id: `sp-a${String(n).padStart(2, '0')}`, kind: 'afmaken', context, start, answers, full, fr });
+const A = (n, context, start, answers, full, fr, pic = null) => ({ id: `sp-a${String(n).padStart(2, '0')}`, kind: 'afmaken', context, start, answers, full, fr, pic });
 
 export const SPEAK_COMPLETE = [
   A(1, 'Ik heb honger.', 'Ik ga iets …', ['eten'], 'Ik ga iets eten.', 'J’ai faim. Je vais manger quelque chose.'),
@@ -73,6 +94,27 @@ export const SPEAK_COMPLETE = [
   A(28, 'Mijn telefoon is kapot.', 'Ik koop een nieuwe …', ['telefoon'], 'Ik koop een nieuwe telefoon.', 'Mon téléphone est cassé. J’achète un nouveau téléphone.'),
   A(29, 'Het is acht uur ’s avonds.', 'De kinderen gaan naar …', ['bed'], 'De kinderen gaan naar bed.', 'Il est huit heures du soir. Les enfants vont se coucher.'),
   A(30, 'Ik heb hoofdpijn.', 'Ik neem een …', ['paracetamol', 'tablet', 'pil', 'pilletje'], 'Ik neem een paracetamol.', 'J’ai mal à la tête. Je prends un paracétamol.'),
+  // Avec image (style de la partie 2 de l’examen) : une situation, puis une phrase à terminer.
+  A(31, 'Mira roert in de soep.', 'De soep is …', ['warm', 'heet', 'lekker'], 'De soep is warm.', 'Mira remue la soupe. La soupe est chaude.', '🍲♨️'),
+  A(32, 'Pavel zoekt zijn sleutels.', 'Hij kijkt onder de …', ['stoel', 'tafel', 'bank'], 'Hij kijkt onder de stoel.', 'Pavel cherche ses clés. Il regarde sous la chaise.', '🔑🪑'),
+  A(33, 'Anna gaat naar haar werk.', 'Ze gaat met de …', ['fiets'], 'Ze gaat met de fiets.', 'Anna va au travail. Elle y va à vélo.', '🚲👩'),
+  A(34, 'Ali is in de supermarkt.', 'Hij koopt …', ['appels', 'fruit'], 'Hij koopt appels.', 'Ali est au supermarché. Il achète des pommes.', '🛒🍎'),
+  A(35, 'De baby heeft honger.', 'Mama geeft hem …', ['melk', 'de fles', 'eten'], 'Mama geeft hem melk.', 'Le bébé a faim. Maman lui donne du lait.', '👶🍼'),
+  A(36, 'Het regent buiten.', 'Sara pakt haar …', ['paraplu', 'jas'], 'Sara pakt haar paraplu.', 'Il pleut dehors. Sara prend son parapluie.', '🌧️☂️'),
+  A(37, 'De vloer is vies.', 'Tom maakt de vloer …', ['schoon'], 'Tom maakt de vloer schoon.', 'Le sol est sale. Tom nettoie le sol.', '🧹🧽'),
+  A(38, 'Er is taart en er zijn cadeaus.', 'Oma is vandaag …', ['jarig'], 'Oma is vandaag jarig.', 'Il y a un gâteau et des cadeaux. C’est l’anniversaire de mamie.', '🎂🎁'),
+  A(39, 'Karim staat op het station.', 'Hij wacht op de …', ['trein'], 'Hij wacht op de trein.', 'Karim est à la gare. Il attend le train.', '🚉🚆'),
+  A(40, 'Het sneeuwt.', 'Lisa trekt haar … aan.', ['jas', 'warme jas', 'handschoenen'], 'Lisa trekt haar jas aan.', 'Il neige. Lisa met son manteau.', '❄️🧥'),
+  A(41, 'Omar zit in de bibliotheek.', 'Hij leest een …', ['boek'], 'Hij leest een boek.', 'Omar est à la bibliothèque. Il lit un livre.', '📚📖'),
+  A(42, 'Fatima maakt het ontbijt.', 'Ze snijdt het …', ['brood'], 'Ze snijdt het brood.', 'Fatima prépare le petit-déjeuner. Elle coupe le pain.', '🍞🔪'),
+  A(43, 'Noor heeft koorts.', 'Ze blijft vandaag in …', ['bed'], 'Ze blijft vandaag in bed.', 'Noor a de la fièvre. Elle reste au lit aujourd’hui.', '🤒🛏️'),
+  A(44, 'Jan komt thuis.', 'Hij opent de deur met zijn …', ['sleutel'], 'Hij opent de deur met zijn sleutel.', 'Jan rentre à la maison. Il ouvre la porte avec sa clé.', '🚪🔑'),
+  A(45, 'Het is pauze op het werk.', 'De collega’s drinken …', ['koffie', 'thee'], 'De collega’s drinken koffie.', 'C’est la pause au travail. Les collègues boivent du café.', '☕👥'),
+  A(46, 'De kinderen zijn op het veld.', 'Ze spelen …', ['voetbal'], 'Ze spelen voetbal.', 'Les enfants sont sur le terrain. Ils jouent au football.', '⚽👟'),
+  A(47, 'De was is klaar.', 'Maria hangt de kleren …', ['op', 'buiten'], 'Maria hangt de kleren op.', 'La lessive est finie. Maria étend les vêtements.', '🧺👕'),
+  A(48, 'Peter is erg ziek.', 'De ambulance brengt hem naar het …', ['ziekenhuis'], 'De ambulance brengt hem naar het ziekenhuis.', 'Peter est très malade. L’ambulance l’emmène à l’hôpital.', '🚑🏥'),
+  A(49, 'Lina staat bij de kassa.', 'Ze betaalt met haar …', ['pinpas', 'bankpas', 'telefoon'], 'Ze betaalt met haar pinpas.', 'Lina est à la caisse. Elle paie avec sa carte bancaire.', '💳🛍️'),
+  A(50, 'Het is lente.', 'In de tuin staan mooie …', ['bloemen'], 'In de tuin staan mooie bloemen.', 'C’est le printemps. Il y a de belles fleurs dans le jardin.', '🌷🌼'),
 ];
 
 // Entraînement « répéter » : prononciation et intonation.

@@ -4,6 +4,7 @@ import { esc, shuffle } from '../core/util.js';
 import { CARD, BTN_PRIMARY, bar, pageTitle, backLink } from '../core/ui.js';
 import { summary, get, pick, MASTERED_BOX } from '../core/learner.js';
 import { session } from '../core/engine.js';
+import { store } from '../core/store.js';
 import { PUZZLES, GRAMMAR_Q, READING, LISTENING, WORDMATCH } from '../content/index.js';
 
 const statusIcon = (id) => {
@@ -41,10 +42,22 @@ export function renderGrammaire(el, params) {
 
 function docList(el, params, { key, title, sub, list: all, label, icon, extra = '' }) {
   // Un document peut avoir plusieurs questions (id « …b ») : on liste chaque document une fois.
-  const list = all.filter((d) => !/b$/.test(d.id));
-  const idsFrom = (i) => list.slice(i).flatMap((d) => all.filter((x) => x.id === d.id || x.id === d.id + 'b').map((x) => x.id));
+  const group = (d) => d.textId || d.id;
+  const list = all.filter((d, i) => all.findIndex((x) => group(x) === group(d)) === i);
+  const idsFrom = (i) => list.slice(i).flatMap((d) => all.filter((x) => group(x) === group(d)).map((x) => x.id));
   const ids = idsFrom(0);
-  if (key === 'lecture' && params[0] === 'mots') return runIn(el, { title: 'Lecture : mots', ids: shuffle(pick(WORDMATCH.map((w) => w.id), 10)), backHash: '#/lecture' });
+  if (key === 'lecture' && params[0] === 'mots') return runIn(el, { title: 'Échauffement : mots', ids: shuffle(pick(WORDMATCH.map((w) => w.id), 10)), backHash: '#/lecture' });
+  if (key === 'lecture' && params[0] === 'examen') {
+    // Format de l’examen depuis mai 2023 : 9 textes, questions à 3 choix, 35 minutes.
+    const texts = shuffle([...new Set(all.map((d) => d.textId))]).slice(0, 9);
+    const examIds = texts.flatMap((t) => all.filter((d) => d.textId === t).map((d) => d.id));
+    const mark = Math.ceil(examIds.length * 0.74);
+    return runIn(el, {
+      title: 'Examen blanc : Lecture', ids: examIds, exam: true, timeLimit: 35 * 60, passMark: mark, backHash: '#/lecture', backLabel: 'Retour à Lecture',
+      passNote: 'Seuil indicatif (environ 74 %, comme 14/19 dans les guides de préparation) : DUO ne publie pas le seuil officiel.',
+      onFinish: (results, { good, total, seconds, passed }) => { store.data.exams.push({ kind: 'lecture', date: Date.now(), good, total, seconds, passed }); store.save(); },
+    });
+  }
   if (params[0] === 'tout') return runIn(el, { title, ids, backHash: `#/${key}` });
   if (params[0] !== undefined) {
     const start = Number(params[0]);
@@ -73,11 +86,16 @@ function docList(el, params, { key, title, sub, list: all, label, icon, extra = 
 
 export const renderLecture = (el, params) => docList(el, params, {
   key: 'lecture', title: 'Lecture', icon: '📄', list: READING, label: (d) => d.title,
-  sub: 'À l’examen, il y a deux sortes de tâches : reconnaître des mots (entendre un mot et trouver le mot écrit, ou l’inverse), puis lire de courts textes du quotidien et répondre à des questions.',
+  sub: 'À l’examen (depuis mai 2023) : 9 courts textes du quotidien (annonces, messages, tableaux, petites histoires), des questions à 3 choix, 35 minutes. Cherchez l’information précise : pas besoin de comprendre chaque mot.',
   extra: (() => { const s = summary(WORDMATCH.map((w) => w.id)); return `<a href="#/lecture/mots" class="${CARD} p-4 flex items-center gap-3 touch-active">
     <span class="w-11 h-11 shrink-0 rounded-2xl bg-teal-100 dark:bg-teal-950/50 flex items-center justify-center text-xl" aria-hidden="true">🔤</span>
-    <span class="flex-1 min-w-0 space-y-1.5"><span class="block font-black dark:text-white">Partie 1 : reconnaître des mots</span><span class="block text-xs text-slate-500 dark:text-slate-400">Entendre un mot → choisir le mot écrit, ou lire un mot → choisir le bon son. ${s.mastered}/${s.total} maîtrisés.</span>${bar(s.mastered, s.total, 'bg-teal-500')}</span>
-  </a><h2 class="text-sm font-black text-slate-700 dark:text-slate-200 pt-2">Partie 2 : textes</h2>`; })(),
+    <span class="flex-1 min-w-0 space-y-1.5"><span class="block font-black dark:text-white">Échauffement : reconnaître des mots</span><span class="block text-xs text-slate-500 dark:text-slate-400">Entendre un mot → choisir le mot écrit, ou l’inverse. Utile pour le vocabulaire (cette partie a été retirée de l’examen en mai 2023). ${s.mastered}/${s.total} maîtrisés.</span>${bar(s.mastered, s.total, 'bg-teal-500')}</span>
+  </a><a href="#/lecture/examen" class="block bg-gradient-to-r from-teal-600 to-delftBlue text-white p-5 rounded-3xl shadow-lg touch-active">
+    <div class="flex items-center justify-between gap-3">
+      <div><div class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-black w-fit mb-1">⏳ Examen blanc · 35 min</div><div class="text-lg font-black">9 textes, 18 questions</div></div>
+      <span class="${BTN_PRIMARY} !bg-white !text-delftBlue">Commencer</span>
+    </div>
+  </a><h2 class="text-sm font-black text-slate-700 dark:text-slate-200 pt-2">Tous les textes (${new Set(READING.map((d) => d.textId)).size})</h2>`; })(),
 });
 
 export const renderEcoute = (el, params) => docList(el, params, {

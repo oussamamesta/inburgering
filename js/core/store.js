@@ -8,12 +8,12 @@ const KEY = 'inburgering_a1_v1';
 const defaults = () => ({
   version: 1,
   createdAt: Date.now(),
-  settings: { theme: 'system', rate: 0.9, showFr: false, sound: true, voiceURI: null },
+  settings: { theme: 'system', rate: 0.9, showFr: false, sound: true, voiceURI: null, examDate: null },
   items: {},        // progrès par élément (voir learner.js)
   days: {},         // activité par jour : { 'AAAA-MM-JJ': { n, c } }
   studyStreak: { last: null, count: 0 },
   exams: [],        // historique des examens blancs
-  ui: { manuelCh: 0, manuelPg: 0, flashSet: 0, flashIdx: 0 },
+  ui: { manuelCh: 0, manuelPg: 0, flashSet: 0, flashIdx: 0, lastReportWeek: null },
   seenVoiceWarning: false,
 });
 

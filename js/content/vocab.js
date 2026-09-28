@@ -1,3 +1,4 @@
+import { VOCAB_PLUS_ROWS } from './vocab_plus.js';
 // Vocabulaire A1. Seuls les noms ont un article (de / het) et un pluriel.
 // Format : [néerlandais, article|null, nature, français, exemple NL, exemple FR, thème, pluriel|null]
 // nature : 'n' nom, 'v' verbe, 'adj' adjectif, 'adv' adverbe, 'x' expression
@@ -137,12 +138,20 @@ const RAW = [
 
 export const POS_LABELS = { n: 'nom', v: 'verbe', adj: 'adjectif', adv: 'adverbe', x: 'expression' };
 
-export const VOCAB = RAW.map(([nl, art, pos, fr, ex, exFr, theme, pl]) => ({
+// Fusion avec le vocabulaire supplémentaire (un mot n’apparaît qu’une fois).
+const seen = new Set();
+export const VOCAB = [...RAW, ...VOCAB_PLUS_ROWS].filter(([nl]) => (seen.has(nl) ? false : seen.add(nl))).map(([nl, art, pos, fr, ex, exFr, theme, pl]) => ({
   id: 'v:' + nl, nl, art, pos, fr, ex, exFr, theme, pl,
 }));
 
-// Les 100 premiers mots forment les 10 séries de cartes (10 mots chacune).
-export const FLASH_SETS = Array.from({ length: 10 }, (_, i) => ({
-  label: VOCAB[i * 10].theme,
-  ids: VOCAB.slice(i * 10, i * 10 + 10).map(w => w.id),
-}));
+// Regroupement de thèmes voisins, puis séries de 15 mots maximum par thème.
+const THEME_OF = { Général: 'Adjectifs & mots utiles', Sécurité: 'Administration', Leren: 'Travail & école', Apprendre: 'Travail & école', Travail: 'Travail & école',
+  Transports: 'Ville & transports', Logement: 'Maison', Santé: 'Corps & santé', Temps: 'Temps & calendrier', Courses: 'Courses & argent' };
+VOCAB.forEach((w) => { w.theme = THEME_OF[w.theme] || w.theme; });
+
+export const THEMES = [...new Set(VOCAB.map((w) => w.theme))];
+export const FLASH_SETS = THEMES.flatMap((t) => {
+  const ids = VOCAB.filter((w) => w.theme === t).map((w) => w.id);
+  const n = Math.ceil(ids.length / 15);
+  return Array.from({ length: n }, (_, i) => ({ theme: t, label: n > 1 ? `${t} ${i + 1}` : t, ids: ids.slice(i * 15, i * 15 + 15) }));
+});

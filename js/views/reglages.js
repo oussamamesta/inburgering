@@ -44,6 +44,15 @@ export function render(el) {
     <div class="max-w-xl mx-auto space-y-4 animate-pop">
       ${pageTitle('Réglages')}
       <section class="${CARD} p-5 space-y-3">
+        <h2 class="font-black dark:text-white">Date de mon examen</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Elle sert à calculer votre séance du jour et le compte à rebours.</p>
+        <div class="flex flex-wrap gap-2 items-center">
+          <label for="examDateSet" class="sr-only">Date de l’examen</label>
+          <input id="examDateSet" type="date" data-examdate value="${s.examDate || ''}" class="p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold">
+          ${s.examDate ? `<button type="button" data-cleardate class="${BTN_SECONDARY}">Effacer</button>` : ''}
+        </div>
+      </section>
+      <section class="${CARD} p-5 space-y-3">
         <h2 class="font-black dark:text-white">Affichage</h2>
         ${seg('theme', s.theme, [['system', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']])}
         ${toggle('showfr', s.showFr, 'Traductions affichées d’office', 'Sinon, touchez « Voir la traduction » sous chaque question.')}
@@ -94,6 +103,8 @@ export function render(el) {
   const redraw = () => { if (location.hash.startsWith('#/reglages')) render(el); };
   el.querySelectorAll('[data-theme]').forEach((b) => b.addEventListener('click', () => { s.theme = b.dataset.theme; store.save(); applyTheme(); redraw(); }));
   el.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', () => { s.rate = Number(b.dataset.rate); store.save(); speak('Dit is de nieuwe snelheid.'); redraw(); }));
+  el.querySelector('[data-examdate]').addEventListener('change', (e) => { s.examDate = e.target.value || null; store.save(); toast(s.examDate ? 'Date d’examen enregistrée.' : 'Date effacée.'); redraw(); });
+  el.querySelector('[data-cleardate]')?.addEventListener('click', () => { s.examDate = null; store.save(); redraw(); });
   el.querySelector('[data-showfr]').addEventListener('change', (e) => { s.showFr = e.target.checked; store.save(); });
   el.querySelector('[data-sound]').addEventListener('change', (e) => { s.sound = e.target.checked; store.save(); });
   el.querySelector('[data-test]').addEventListener('click', () => { speak('Goedemorgen, hoe gaat het?'); later(redraw, 800); });

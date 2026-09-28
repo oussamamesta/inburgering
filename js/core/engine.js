@@ -7,9 +7,11 @@ import { playSound } from './audio.js';
 import { store } from './store.js';
 import { CARD, BTN_PRIMARY, BTN_SECONDARY, audioBtn, iconSay, bar, ask } from './ui.js';
 import { lookup, KNS_CATS } from '../content/index.js';
+import { knsPicture } from '../content/pics.js';
+import { keywordsFor } from '../content/glossaire.js';
 import { POS_LABELS } from '../content/vocab.js';
 import { VOCAB } from '../content/index.js';
-import { speak } from './audio.js';
+import { speak, stopSpeaking } from './audio.js';
 import { canRecord, canRecognize, startRecording, recognize, normText, micErrorText } from './micro.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -52,6 +54,7 @@ export function mcq(host, cfg, onDone) {
           <h2 class="flex-1 text-lg font-black leading-snug text-slate-900 dark:text-white selectable" lang="${lang}">${esc(cfg.prompt)}</h2>
           ${cfg.audio ? iconSay(cfg.prompt) : ''}
         </div>
+        ${cfg.keywords?.length ? `<div class="flex flex-wrap gap-1.5" aria-label="Mots clés">${cfg.keywords.map((k) => `<span class="text-xs px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-950 dark:text-amber-100"><b lang="nl">${esc(k.nl)}</b> = ${esc(k.fr)}</span>`).join('')}</div>` : ''}
         ${cfg.promptFr ? `<p data-fr class="text-sm italic text-slate-500 dark:text-slate-400 ${showFr ? '' : 'hidden'}">${esc(cfg.promptFr)}</p>` : ''}
         ${hasFr ? `<button type="button" data-toggle-fr class="inline-flex items-center gap-1.5 text-xs font-bold text-delftBlue dark:text-blue-300 py-1"><i class="fa-solid fa-language" aria-hidden="true"></i> <span>${showFr ? 'Masquer la traduction' : 'Voir la traduction'}</span></button>` : ''}
         <div class="space-y-2" role="group" aria-label="Réponses possibles">
@@ -77,6 +80,12 @@ export function mcq(host, cfg, onDone) {
   };
   $('[data-toggle-fr]', host)?.addEventListener('click', () => setFr(!showFr));
 
+  // Mode examen : la question et les réponses sont lues à voix haute, comme à l’examen officiel.
+  if (cfg.autoRead) {
+    const text = `${cfg.prompt} ${order.map((oi, pos) => `${LETTERS[pos]}. ${cfg.opts[oi]}.`).join(' ')}`;
+    setTimeout(() => { if (document.body.contains(host)) speak(text); }, 300);
+  }
+
   let answered = false;
   $$('[data-opt]', host).forEach((btn) =>
     btn.addEventListener('click', () => {
@@ -88,6 +97,7 @@ export function mcq(host, cfg, onDone) {
       $$('[data-opt]', host).forEach((b) => (b.disabled = true));
 
       if (cfg.exam) {
+        stopSpeaking();
         btn.className = OPT_PICKED;
         onDone?.(ok, chosen);
         return;
@@ -241,6 +251,7 @@ export function speakItem(host, it, onDone) {
   host.innerHTML = `
     <div class="${CARD} p-5 space-y-4">
       <p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">${k.label}</p>
+      ${it.pic ? `<div class="text-6xl text-center py-4 rounded-2xl bg-sky-50 dark:bg-slate-900/60" role="img" aria-label="Image de la situation">${it.pic}</div>` : ''}
       <div class="flex flex-wrap gap-2">
         <button type="button" data-play class="${BTN_PRIMARY} !bg-blue-600"><i class="fa-solid fa-play" aria-hidden="true"></i> Écouter</button>
         <button type="button" data-play-slow class="${BTN_SECONDARY}"><i class="fa-solid fa-gauge-simple" aria-hidden="true"></i> Plus lentement</button>
@@ -374,6 +385,88 @@ export function wordMatch(host, it, onDone) {
   }));
 }
 
+
+// ── Vocabulaire : de / het, écrire le mot, dictée ───────
+const normWord = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, '').replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim();
+function distance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+export function deHet(host, it, onDone) {
+  const w = it.word;
+  host.innerHTML = `
+    <div class="${CARD} p-6 space-y-5 text-center">
+      <p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">« de » ou « het » ?</p>
+      <p class="text-4xl font-black text-slate-900 dark:text-white" lang="nl">… ${esc(w.nl)}</p>
+      <p class="text-sm text-slate-500 dark:text-slate-400">${esc(w.fr)}</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" data-art="de" class="${OPT_IDLE} justify-center text-2xl">de</button>
+        <button type="button" data-art="het" class="${OPT_IDLE} justify-center text-2xl">het</button>
+      </div>
+      <div data-feedback class="text-left"></div>
+    </div>`;
+  let answered = false;
+  $$('[data-art]', host).forEach((b) => b.addEventListener('click', () => {
+    if (answered) return;
+    answered = true;
+    const ok = b.dataset.art === w.art;
+    record(it.id, ok, { type: 'dehet', cat: 'de-het' });
+    playSound(ok ? 'correct' : 'wrong');
+    $$('[data-art]', host).forEach((x) => { x.disabled = true; x.className = (x.dataset.art === w.art ? OPT_OK : x === b ? OPT_BAD : OPT_DIM) + ' justify-center text-2xl'; });
+    $('[data-feedback]', host).innerHTML = feedbackBox(ok, `<p class="flex flex-wrap items-center gap-2"><b lang="nl">${w.art} ${esc(w.nl)}</b>${w.pl ? ` · pluriel : <b lang="nl">de ${esc(w.pl)}</b>` : ''} ${audioBtn(`${w.art} ${w.nl}`, 'Écouter')}</p>
+      ${w.art === 'het' ? '<p class="text-xs">Au pluriel, tous les noms prennent « de ».</p>' : ''}`);
+    onDone?.(ok);
+  }));
+}
+
+// mode : 'ecrire' (on voit le français) ou 'dictee' (on entend le mot).
+export function typeWord(host, it, mode, onDone) {
+  const w = it.word;
+  const target = w.nl;
+  const withArt = w.art ? `${w.art} ${w.nl}` : w.nl;
+  host.innerHTML = `
+    <div class="${CARD} p-6 space-y-4">
+      <p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">${mode === 'dictee' ? 'Dictée : écoutez et écrivez le mot' : 'Écrivez le mot en néerlandais'}</p>
+      ${mode === 'dictee'
+        ? `<div class="flex flex-wrap gap-2"><button type="button" data-say="${esc(withArt)}" class="${BTN_PRIMARY} !bg-emerald-600"><i class="fa-solid fa-play" aria-hidden="true"></i> Écouter</button><button type="button" data-say="${esc(withArt)}" data-say-rate="0.7" class="${BTN_SECONDARY}">Plus lentement</button></div>`
+        : `<p class="text-2xl font-black text-slate-900 dark:text-white">${esc(w.fr)}</p><p class="text-xs text-slate-500">${POS_LABELS[w.pos]}${w.art ? ' (l’article est facultatif)' : ''}</p>`}
+      <form data-form class="flex gap-2" autocomplete="off">
+        <label for="typeInput" class="sr-only">Votre réponse</label>
+        <input id="typeInput" data-input lang="nl" autocapitalize="off" autocorrect="off" spellcheck="false" class="flex-1 min-w-0 p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold" placeholder="…">
+        <button type="submit" class="${BTN_PRIMARY}">Vérifier</button>
+      </form>
+      <button type="button" data-hint class="text-xs font-bold text-slate-500 dark:text-slate-400">💡 Indice : première lettre</button>
+      <div data-feedback></div>
+    </div>`;
+  if (mode === 'dictee') setTimeout(() => { if (document.body.contains(host)) speak(withArt); }, 350);
+  const input = $('[data-input]', host);
+  setTimeout(() => input.focus({ preventScroll: true }), 50);
+  $('[data-hint]', host).addEventListener('click', (e) => { e.currentTarget.textContent = `💡 Commence par « ${target[0]} » (${target.length} lettres)`; });
+  let answered = false;
+  $('[data-form]', host).addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (answered || !input.value.trim()) return;
+    answered = true;
+    let given = normWord(input.value);
+    if (w.art) given = given.replace(/^(de|het)\s+/, '');
+    const goal = normWord(target);
+    const ok = given === goal;
+    const close = !ok && goal.length >= 4 && distance(given, goal) === 1;
+    record(it.id, ok, { type: mode === 'dictee' ? 'dictee' : 'typing', cat: mode });
+    playSound(ok ? 'correct' : 'wrong');
+    input.disabled = true;
+    input.classList.add(ok ? '!border-emerald-500' : '!border-red-500');
+    $('[data-feedback]', host).innerHTML = feedbackBox(ok, `
+      ${close ? '<p class="font-bold">Presque ! Une seule lettre de différence.</p>' : ''}
+      <p class="flex flex-wrap items-center gap-2">Réponse : <b lang="nl">${esc(withArt)}</b> = ${esc(w.fr)} ${audioBtn(withArt, 'Écouter')}</p>
+      <p class="text-xs selectable" lang="nl">${esc(w.ex)} <span class="italic opacity-80">— ${esc(w.exFr)}</span></p>`);
+    onDone?.(ok);
+  });
+}
+
 // ── Rendu d’un élément selon son type ───────────────────
 const DOC_STYLES = {
   blue: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900',
@@ -403,7 +496,9 @@ export function renderItem(host, id, opts = {}, onDone) {
       kCorr = 0;
     }
     mcq(host, { id, type, cat: item.cat, prompt: item.q, promptFr: item.qFr, opts: kOpts, optsFr: kFr, corr: kCorr, expl: item.expl, audio: true, exam,
-      top: `<div class="text-xs font-bold text-slate-500 dark:text-slate-400">${cat.icon} ${esc(cat.label)}</div>` }, onDone);
+      autoRead: exam, keywords: exam ? null : keywordsFor(item.q),
+      top: `<div class="text-xs font-bold text-slate-500 dark:text-slate-400">${cat.icon} ${esc(cat.label)}</div>
+        <div class="text-6xl text-center py-5 rounded-3xl bg-sky-50 dark:bg-slate-800 border border-sky-100 dark:border-slate-700" role="img" aria-label="Illustration de la situation">${knsPicture(item, cat.icon)}</div>` }, onDone);
   } else if (type === 'grammar') {
     mcq(host, { id, type, cat: 'grammaire', prompt: item.q, promptFr: item.qFr, opts: item.opts, corr: item.corr, expl: item.expl, audio: true, exam }, onDone);
   } else if (type === 'reading') {
@@ -431,6 +526,12 @@ export function renderItem(host, id, opts = {}, onDone) {
     speakItem(host, item, onDone);
   } else if (type === 'wordmatch') {
     wordMatch(host, item, onDone);
+  } else if (type === 'dehet') {
+    deHet(host, item, onDone);
+  } else if (type === 'typing') {
+    typeWord(host, item, 'ecrire', onDone);
+  } else if (type === 'dictee') {
+    typeWord(host, item, 'dictee', onDone);
   }
 }
 
@@ -447,7 +548,7 @@ export function describe(id) {
     case 'puzzle': return { label: it.fr, answer: it.answer };
     case 'speak': return it.kind === 'vraag' ? { label: it.q, fr: it.qFr, answer: it.model[0], expl: it.tip }
       : it.kind === 'afmaken' ? { label: `${it.context} ${it.start}`, fr: it.fr, answer: it.full } : { label: it.nl, fr: it.fr, answer: it.nl, expl: it.tip };
-    case 'wordmatch': return { label: (it.word.art ? it.word.art + ' ' : '') + it.word.nl, answer: it.word.fr };
+    case 'wordmatch': case 'dehet': case 'typing': case 'dictee': return { label: (it.word.art ? it.word.art + ' ' : '') + it.word.nl, answer: it.word.fr };
     default: return { label: id };
   }
 }
@@ -471,7 +572,7 @@ export function session(host, cfg) {
       <div class="flex items-center justify-between gap-2">
         <a href="${cfg.backHash || '#/'}" data-quit class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 py-1"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Quitter</a>
         <span class="text-sm font-black text-slate-700 dark:text-slate-200 truncate">${esc(cfg.title)}</span>
-        <span data-timer class="text-xs font-bold text-slate-500 tabular-nums">${cfg.exam ? '0:00' : ''}</span>
+        <span data-timer class="text-xs font-bold text-slate-500 tabular-nums">${cfg.exam ? (cfg.timeLimit ? `⏳ ${Math.floor(cfg.timeLimit / 60)}:00` : '0:00') : ''}</span>
       </div>
       <div class="space-y-1.5"><div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400"><span data-count></span><span data-score></span></div><div data-bar></div></div>
       <div data-ex></div>
@@ -487,11 +588,18 @@ export function session(host, cfg) {
     if (await ask('Quitter la séance ?\nVos réponses déjà données sont enregistrées.', 'Quitter')) location.hash = cfg.backHash || '#/';
   });
 
+  let finished = false;
   if (cfg.exam) {
+    // Chronomètre ; avec timeLimit (secondes), c’est un compte à rebours qui termine l’examen à 0.
     timer = setInterval(() => {
-      const s = Math.floor((Date.now() - start) / 1000);
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const s = cfg.timeLimit ? Math.max(0, cfg.timeLimit - elapsed) : elapsed;
       const el = $('[data-timer]', host);
-      if (el) el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      if (el) {
+        el.textContent = `${cfg.timeLimit ? '⏳ ' : ''}${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        if (cfg.timeLimit && s <= 60) el.classList.add('text-red-600');
+      }
+      if (cfg.timeLimit && s === 0 && !finished) finish(true);
     }, 1000);
     onLeave(() => clearInterval(timer));
   }
@@ -504,6 +612,7 @@ export function session(host, cfg) {
 
   const next = () => {
     idx += 1;
+    if (finished) return;
     if (idx >= ids.length) finish();
     else show();
   };
@@ -525,8 +634,13 @@ export function session(host, cfg) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const finish = () => {
+  const finish = (timeUp = false) => {
+    if (finished) return;
+    finished = true;
     clearInterval(timer);
+    // Questions sans réponse (temps écoulé) = fausses.
+    ids.forEach((id, i) => { if (!results[i]) results[i] = { id, ok: false, skipped: true }; });
+    const skipped = results.filter((r) => r.skipped).length;
     const good = results.filter((r) => r.ok).length;
     const total = ids.length;
     const seconds = Math.round((Date.now() - start) / 1000);
@@ -543,6 +657,8 @@ export function session(host, cfg) {
           <p class="text-3xl font-black ${passed === false ? 'text-red-600' : 'text-emerald-600'}">${good} / ${total}</p>
           ${cfg.passMark ? `<p class="text-sm font-bold ${passed ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}">${passed ? 'Réussi' : 'Pas encore réussi'} (seuil : ${cfg.passMark} / ${total})</p>` : ''}
           ${cfg.exam ? `<p class="text-xs text-slate-500">Temps : ${Math.floor(seconds / 60)} min ${seconds % 60} s</p>` : ''}
+          ${timeUp ? `<p class="text-sm font-bold text-red-600">Temps écoulé : ${skipped} question${skipped > 1 ? 's' : ''} sans réponse.</p>` : ''}
+          ${cfg.passNote ? `<p class="text-xs text-slate-500">${cfg.passNote}</p>` : ''}
           ${cfg.summaryExtra ? cfg.summaryExtra(results) : ''}
         </div>
         ${wrong.length ? `

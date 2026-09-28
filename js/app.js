@@ -14,15 +14,23 @@ import { renderGrammaire, renderLecture, renderEcoute } from './views/pratique.j
 import { renderExamen, renderReviser, renderProgres } from './views/suivi.js';
 import { render as reglages } from './views/reglages.js';
 import { render as parler } from './views/parler.js';
+import { session } from './core/engine.js';
+import { dailyPlan } from './core/plan.js';
+
+// Séance du jour (plan d’étude).
+function planSession(el) {
+  el.innerHTML = '<div></div>';
+  session(el.firstElementChild, { title: 'Séance du jour', ids: dailyPlan().sessionIds, backHash: '#/', backLabel: 'Accueil' });
+}
 
 const ROUTES = {
   '': accueil, manuel, kns, mots: renderCards, dico: renderDico, grammaire: renderGrammaire,
   lecture: renderLecture, ecoute: renderEcoute, examen: renderExamen, reviser: renderReviser,
-  progres: renderProgres, reglages, parler,
+  progres: renderProgres, reglages, parler, plan: planSession,
 };
 
 // Onglet mis en évidence pour chaque page.
-const NAV_OF = { dico: 'mots' };
+const NAV_OF = { dico: 'mots', plan: '' };
 
 function route() {
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);

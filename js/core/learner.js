@@ -39,12 +39,22 @@ export function record(id, ok, meta = {}) {
   }
   it.last = now;
   it.lastOk = ok;
+  if (it.box >= MASTERED_BOX && !it.mAt) it.mAt = now; // date de maîtrise (bilan de la semaine)
 
-  // Activité du jour + série de jours d’étude.
+  // Activité du jour (totaux, par type d’exercice et par thème) + série de jours d’étude.
   const k = dayKey();
   const d = store.data.days[k] || (store.data.days[k] = { n: 0, c: 0 });
   d.n += 1;
   if (ok) d.c += 1;
+  const bump = (group, key) => {
+    if (!key) return;
+    const g = d[group] || (d[group] = {});
+    const x = g[key] || (g[key] = { n: 0, c: 0 });
+    x.n += 1;
+    if (ok) x.c += 1;
+  };
+  bump('types', it.type);
+  bump('cats', it.cat);
   bumpStreak(k);
 
   store.save();
@@ -135,4 +145,27 @@ export function weakest(limit = 5, filter = () => true) {
     .map(([id, it]) => ({ id, ...it, errors: it.n - it.c, rate: it.c / it.n }))
     .sort((a, b) => a.rate - b.rate || b.errors - a.errors)
     .slice(0, limit);
+}
+
+// Somme de l’activité entre deux dates (inclus), à partir des totaux par jour.
+export function activityBetween(daysAgoFrom, daysAgoTo) {
+  const out = { n: 0, c: 0, days: 0, types: {}, cats: {} };
+  for (let i = daysAgoFrom; i >= daysAgoTo; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const x = store.data.days[dayKey(d)];
+    if (!x || !x.n) continue;
+    out.n += x.n; out.c += x.c; out.days += 1;
+    for (const group of ['types', 'cats']) {
+      for (const [key, v] of Object.entries(x[group] || {})) {
+        const t = out[group][key] || (out[group][key] = { n: 0, c: 0 });
+        t.n += v.n; t.c += v.c;
+      }
+    }
+  }
+  return out;
+}
+
+export function masteredSince(ms) {
+  return Object.entries(items()).filter(([, it]) => it.mAt && it.mAt >= ms).map(([id]) => id);
 }

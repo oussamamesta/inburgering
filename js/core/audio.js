@@ -68,14 +68,16 @@ export const speechInfo = () => {
 };
 
 // Lecture d’un texte. Les phrases sont lues séparément avec une petite pause : plus naturel sur les voix de base.
-export function speak(text, rateFactor = 1, voiceURI = null) {
-  if (!supported || !text) return false;
+export function speak(text, rateFactor = 1, voiceURI = null, onEnd = null) {
+  if (!supported || !text) { onEnd?.(); return false; }
   const synth = window.speechSynthesis;
   synth.cancel();
   const voice = (voiceURI && dutchVoices().find((v) => v.voiceURI === voiceURI)) || currentVoice();
   const parts = String(text).match(/[^.!?]+[.!?]*/g) || [text];
-  parts.map((p) => p.trim()).filter(Boolean).forEach((part) => {
+  const list = parts.map((p) => p.trim()).filter(Boolean);
+  list.forEach((part, i) => {
     const u = new SpeechSynthesisUtterance(part);
+    if (onEnd && i === list.length - 1) { u.onend = () => onEnd(); u.onerror = () => onEnd(); }
     u.lang = voice?.lang || 'nl-NL';
     u.rate = store.data.settings.rate * rateFactor;
     u.pitch = 1;

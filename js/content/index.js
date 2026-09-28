@@ -10,6 +10,10 @@ export { KNS_QUESTIONS, KNS_CATS, MANUEL, VOCAB, PUZZLES, GRAMMAR_Q, READING, LI
 
 // Mots à reconnaître (lecture, partie 1 de l’examen) : un exercice par mot du vocabulaire.
 export const WORDMATCH = VOCAB.map((w) => ({ id: 'wm:' + w.nl, word: w }));
+// Exercices de vocabulaire : article (noms seulement), écrire le mot (fr → nl), dictée (audio → écrit).
+export const DEHET = VOCAB.filter((w) => w.art).map((w) => ({ id: 'dh:' + w.nl, word: w }));
+export const TYPING = VOCAB.map((w) => ({ id: 'ty:' + w.nl, word: w }));
+export const DICTEE = VOCAB.map((w) => ({ id: 'dc:' + w.nl, word: w }));
 
 export const MANUEL_PAGES = MANUEL.flatMap((ch, ci) => ch.pages.map((p, pi) => ({ ...p, ci, pi, cat: ch.cat })));
 
@@ -25,12 +29,15 @@ add('reading', READING, () => 'lecture');
 add('listening', LISTENING, () => 'ecoute');
 add('speak', SPEAK_ALL, (s) => s.kind);
 add('wordmatch', WORDMATCH, () => 'mots-lecture');
+add('dehet', DEHET, () => 'de-het');
+add('typing', TYPING, () => 'ecrire');
+add('dictee', DICTEE, () => 'dictee');
 
 export const lookup = (id) => registry.get(id) || null;
 
 export const TYPE_LABELS = {
   kns: 'Société (KNS)', manuel: 'Manuel', vocab: 'Mots', puzzle: 'Construire des phrases',
-  grammar: 'Grammaire', reading: 'Lecture (textes)', listening: 'Écoute', speak: 'Parler', wordmatch: 'Lecture (mots)',
+  grammar: 'Grammaire', reading: 'Lecture (textes)', listening: 'Écoute', speak: 'Parler', wordmatch: 'Mots (reconnaître)', dehet: 'Mots (de / het)', typing: 'Mots (écrire)', dictee: 'Mots (dictée)',
 };
 
 export const idsOf = (type) => [...registry.entries()].filter(([, v]) => v.type === type).map(([id]) => id);

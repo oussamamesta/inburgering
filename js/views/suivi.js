@@ -2,7 +2,8 @@
 
 import { esc, shuffle, pct } from '../core/util.js';
 import { CARD, BTN_PRIMARY, BTN_SECONDARY, bar, pageTitle, backLink } from '../core/ui.js';
-import { dueIds, summary, weakest, lastDays, accuracyLastDays, currentStreak, get, MASTERED_BOX, INTERVALS } from '../core/learner.js';
+import { dueIds, summary, weakest, lastDays, accuracyLastDays, currentStreak, get, MASTERED_BOX, INTERVALS, activityBetween, masteredSince } from '../core/learner.js';
+import { weekKey, catLabel, catLink, PARTS, readiness } from '../core/plan.js';
 import { session, describe } from '../core/engine.js';
 import { store } from '../core/store.js';
 import { KNS_CATS, KNS_QUESTIONS, TYPE_LABELS, lookup, idsOf } from '../content/index.js';
@@ -38,9 +39,9 @@ export function renderExamen(el, params) {
   if (params[0] === 'go') {
     el.innerHTML = '<div></div>';
     session(el.firstElementChild, {
-      title: 'Examen blanc — Société', ids: examQuestions(), exam: true, passMark: PASS_MARK, backHash: '#/examen', backLabel: 'Retour',
+      title: 'Examen blanc — Société', ids: examQuestions(), exam: true, timeLimit: 30 * 60, passMark: PASS_MARK, backHash: '#/examen', backLabel: 'Retour',
       onFinish: (results, { good, total, seconds, passed }) => {
-        store.data.exams.push({ date: Date.now(), good, total, seconds, passed, byCat: byCategory(results) });
+        store.data.exams.push({ kind: 'kns', date: Date.now(), good, total, seconds, passed, byCat: byCategory(results) });
         store.save();
       },
       summaryExtra: (results) => {
@@ -52,7 +53,7 @@ export function renderExamen(el, params) {
     return;
   }
 
-  const hist = [...store.data.exams].reverse().slice(0, 5);
+  const hist = store.data.exams.filter((e) => (e.kind || 'kns') === 'kns').reverse().slice(0, 5);
   el.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4 animate-pop">
       ${pageTitle('Examen blanc — Société')}
@@ -60,7 +61,7 @@ export function renderExamen(el, params) {
         <p class="text-4xl text-center" aria-hidden="true">🏆</p>
         <ul class="space-y-1.5">
           <li>• Comme à l’examen officiel : <b>${EXAM_SIZE} questions</b>, <b>deux réponses possibles</b> à chaque fois, et il faut <b>${PASS_MARK} bonnes réponses</b> pour réussir.</li>
-          <li>• À l’examen, vous avez 30 minutes. Le chronomètre vous aide à suivre votre rythme.</li>
+          <li>• Comme à l’examen : 30 minutes, avec un compte à rebours. Chaque question est lue à voix haute, avec les deux réponses.</li>
           <li>• Les questions sont tirées des ${KNS_QUESTIONS.length} questions de l’application, dans les 8 thèmes.</li>
           <li>• Pas de correction pendant l’examen : le bilan détaillé arrive à la fin.</li>
         </ul>
@@ -111,22 +112,60 @@ export function renderReviser(el, params) {
     </div>`;
 }
 
+
+// ── Bilan de la semaine ──
+function weeklyReport() {
+  store.data.ui.lastReportWeek = weekKey();
+  store.save();
+  const now = activityBetween(6, 0);
+  const prev = activityBetween(13, 7);
+  const acc = (x) => (x.n ? Math.round((x.c / x.n) * 100) : null);
+  const mastered = masteredSince(Date.now() - 7 * 86400000).length;
+  const cats = Object.entries(now.cats).filter(([, v]) => v.n >= 4).map(([k, v]) => ({ k, n: v.n, a: Math.round((v.c / v.n) * 100) }));
+  const weakCats = [...cats].sort((a, b) => a.a - b.a).slice(0, 3).filter((c) => c.a < 85);
+  const strongCats = [...cats].sort((a, b) => b.a - a.a).slice(0, 2).filter((c) => c.a >= 80);
+  const parts = Object.keys(PARTS).map((k) => ({ k, ...readiness(k) })).sort((a, b) => a.score - b.score);
+  const focus = weakCats[0] ? { label: catLabel(weakCats[0].k), href: catLink(weakCats[0].k) } : { label: PARTS[parts[0].k].label, href: PARTS[parts[0].k].href };
+  const aNow = acc(now), aPrev = acc(prev);
+  const delta = aNow !== null && aPrev !== null ? aNow - aPrev : null;
+
+  if (!now.n) {
+    return `<section class="${CARD} p-5 space-y-2"><h2 class="font-black dark:text-white">📊 Bilan de la semaine</h2><p class="text-sm text-slate-500">Pas d’activité ces 7 derniers jours. Une petite séance aujourd’hui relancera votre progression.</p><a href="#/plan" class="${BTN_PRIMARY}">Séance du jour</a></section>`;
+  }
+  return `<section class="${CARD} p-5 space-y-4">
+    <h2 class="font-black dark:text-white">📊 Bilan de la semaine <span class="text-xs font-bold text-slate-500">(7 derniers jours)</span></h2>
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${now.days} / 7</div><div class="text-xs text-slate-500">jours d’étude</div></div>
+      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${mastered}</div><div class="text-xs text-slate-500">nouveaux éléments maîtrisés</div></div>
+      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${aNow} %</div><div class="text-xs text-slate-500">de bonnes réponses${delta !== null ? ` (${delta >= 0 ? '+' : ''}${delta} vs sem. passée)` : ''}</div></div>
+    </div>
+    ${strongCats.length ? `<div class="text-sm"><p class="font-bold text-emerald-700 dark:text-emerald-400">✓ Points forts</p><ul class="text-slate-700 dark:text-slate-300">${strongCats.map((c) => `<li>${esc(catLabel(c.k))} : ${c.a} %</li>`).join('')}</ul></div>` : ''}
+    ${weakCats.length ? `<div class="text-sm"><p class="font-bold text-red-700 dark:text-red-400">À retravailler</p><ul class="space-y-1">${weakCats.map((c) => `<li><a href="${catLink(c.k)}" class="underline text-slate-700 dark:text-slate-300">${esc(catLabel(c.k))} : ${c.a} % sur ${c.n} réponses</a></li>`).join('')}</ul></div>` : ''}
+    <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-4 text-sm text-amber-950 dark:text-amber-100 space-y-2">
+      <p class="font-black">🎯 Objectif pour la semaine qui vient</p>
+      <p>Priorité : <b>${esc(focus.label)}</b>. Visez au moins ${Math.min(7, Math.max(4, now.days + 1))} jours d’étude${parts[0].exams ? '' : `, et faites un examen blanc de ${PARTS[parts[0].k].label}`}.</p>
+      <a href="${focus.href}" class="${BTN_PRIMARY}">S’y mettre maintenant</a>
+    </div>
+  </section>`;
+}
+
 // ── Progrès ─────────────────────────────────────────────
 export function renderProgres(el) {
-  const types = ['kns', 'manuel', 'speak', 'wordmatch', 'reading', 'vocab', 'puzzle', 'grammar', 'listening'];
+  const types = ['kns', 'manuel', 'speak', 'reading', 'vocab', 'dehet', 'typing', 'dictee', 'wordmatch', 'puzzle', 'grammar', 'listening'];
   const allIds = types.flatMap(idsOf);
   const tot = summary(allIds);
   const days = lastDays(14);
   const maxN = Math.max(1, ...days.map((d) => d.n));
   const acc7 = accuracyLastDays(7);
   const weak = weakest(5);
-  const exams = store.data.exams.slice(-5);
+  const exams = store.data.exams.filter((e) => (e.kind || 'kns') === 'kns').slice(-5);
 
   const stat = (value, label) => `<div class="${CARD} p-4 text-center"><div class="text-2xl font-black text-delftBlue dark:text-white">${value}</div><div class="text-xs font-bold text-slate-500 dark:text-slate-400">${label}</div></div>`;
 
   el.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-pop">
       ${pageTitle('Mes progrès', 'Un élément est « maîtrisé » après 3 bonnes réponses espacées dans le temps.')}
+      ${weeklyReport()}
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <!-- 4 indicateurs -->
         ${stat(currentStreak() + ' j', 'Série de jours')}

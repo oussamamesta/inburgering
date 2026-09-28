@@ -1,3 +1,4 @@
+import { READING_TEXTS } from './lezen.js';
 // Grammaire, construction de phrases, lecture et écoute.
 // Explications en français ; le matériel de pratique reste en néerlandais.
 
@@ -155,5 +156,10 @@ const SECOND = {
 };
 READING.splice(0, READING.length, ...READING.flatMap((d) => {
   const [q, qFr, opts, corr, expl] = SECOND[d.id];
-  return [d, { ...d, id: d.id + 'b', q, qFr, opts, corr, expl }];
+  return [{ ...d, textId: d.id }, { ...d, id: d.id + 'b', textId: d.id, q, qFr, opts, corr, expl }];
 }));
+
+// Textes supplémentaires au format de l’examen (voir lezen.js).
+READING.push(...READING_TEXTS.flatMap((t) => t.qs.map(([q, qFr, opts, corr, expl], i) => ({
+  id: `${t.id}-${i + 1}`, textId: t.id, title: t.title, style: t.style, doc: t.doc, q, qFr, opts, corr, expl,
+}))));

@@ -35,11 +35,20 @@ function byCategory(results) {
   return rows;
 }
 
+const fmtDate = (t) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+const historyOf = (kind) => store.data.exams.filter((e) => (e.kind || 'kns') === kind).reverse().slice(0, 5);
+const historyList = (kind) => {
+  const hist = historyOf(kind);
+  return hist.length ? `<div class="${CARD} p-5 space-y-2"><h2 class="font-black dark:text-white">Vos derniers résultats</h2>
+    ${hist.map((h) => `<div class="flex justify-between text-sm dark:text-white"><span>${fmtDate(h.date)}${h.seconds ? ` · ${Math.floor(h.seconds / 60)} min` : ''}</span><span class="font-bold ${h.passed ? 'text-emerald-600' : 'text-red-600'}">${h.good}/${h.total} ${h.passed ? '✓' : '✗'}</span></div>`).join('')}</div>` : '';
+};
+
 export function renderExamen(el, params) {
-  if (params[0] === 'go') {
+  const p = params[0];
+  if (p === 'go' || p === 'start-societe') {
     el.innerHTML = '<div></div>';
     session(el.firstElementChild, {
-      title: 'Examen blanc — Société', ids: examQuestions(), exam: true, timeLimit: 30 * 60, passMark: PASS_MARK, backHash: '#/examen', backLabel: 'Retour',
+      title: 'Examen blanc — Société', ids: examQuestions(), exam: true, timeLimit: 30 * 60, passMark: PASS_MARK, backHash: '#/examen', backLabel: 'Retour aux examens',
       onFinish: (results, { good, total, seconds, passed }) => {
         store.data.exams.push({ kind: 'kns', date: Date.now(), good, total, seconds, passed, byCat: byCategory(results) });
         store.save();
@@ -53,23 +62,69 @@ export function renderExamen(el, params) {
     return;
   }
 
-  const hist = store.data.exams.filter((e) => (e.kind || 'kns') === 'kns').reverse().slice(0, 5);
+  if (p === 'societe') {
+    el.innerHTML = `
+      <div class="max-w-xl mx-auto space-y-4 animate-pop">
+        ${pageTitle('Examen blanc — Société')}
+        <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
+          <ul class="space-y-1.5">
+            <li>• Comme à l’examen officiel : <b>${EXAM_SIZE} questions</b>, <b>deux réponses possibles</b> à chaque fois, et il faut <b>${PASS_MARK} bonnes réponses</b> pour réussir.</li>
+            <li>• 30 minutes, avec un compte à rebours. Chaque question est lue à voix haute, avec les deux réponses.</li>
+            <li>• Les questions sont tirées des ${KNS_QUESTIONS.length} questions de l’application, dans les 8 thèmes.</li>
+            <li>• Pas de correction pendant l’examen : le bilan détaillé arrive à la fin.</li>
+          </ul>
+          <p class="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 border border-amber-200 dark:border-amber-800 rounded-2xl p-3">À l’examen officiel, chaque question accompagne une photo du pack d’étude « Naar Nederland » de DUO. Nos questions couvrent les mêmes thèmes mais ne sont pas les 100 questions officielles : travaillez aussi avec ce pack (naarnederland.nl).</p>
+          <a href="#/examen/start-societe" class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Commencer l’examen</a>
+        </div>
+        ${historyList('kns')}
+        ${backLink('#/examen', 'Tous les examens blancs')}
+      </div>`;
+    return;
+  }
+
+  if (p === 'lecture') {
+    el.innerHTML = `
+      <div class="max-w-xl mx-auto space-y-4 animate-pop">
+        ${pageTitle('Examen blanc — Lecture')}
+        <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
+          <ul class="space-y-1.5">
+            <li>• Comme à l’examen depuis mai 2023 : <b>9 textes courts</b> du quotidien (annonces, messages, tableaux, lettres, petites histoires).</li>
+            <li>• <b>2 questions par texte</b> (18 au total ; l’examen en compte environ 19), avec <b>3 réponses possibles</b>.</li>
+            <li>• <b>35 minutes</b> avec compte à rebours. À la fin du temps, les questions sans réponse comptent comme fausses.</li>
+            <li>• Pas de correction pendant l’examen : le bilan avec les explications arrive à la fin.</li>
+          </ul>
+          <div class="rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 p-3 text-teal-950 dark:text-teal-100 space-y-1">
+            <p class="font-black">Conseils</p>
+            <p>1. Lisez d’abord la question, puis cherchez l’information dans le texte.</p>
+            <p>2. Pas besoin de comprendre chaque mot : repérez les heures, les jours, les prix, les noms.</p>
+            <p>3. Environ 4 minutes par texte. Si vous bloquez, choisissez une réponse et avancez.</p>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Seuil indicatif : environ 74 % (comme 14 sur 19 dans les guides de préparation). DUO ne publie pas le seuil officiel.</p>
+          <a href="#/lecture/examen" class="${BTN_PRIMARY} w-full !bg-teal-600"><i class="fa-solid fa-play" aria-hidden="true"></i> Commencer l’examen</a>
+        </div>
+        ${historyList('lecture')}
+        ${backLink('#/examen', 'Tous les examens blancs')}
+      </div>`;
+    return;
+  }
+
+  // Page d’accueil des examens blancs : les trois parties de l’examen.
+  const card = (href, icon, title, details, kind, grad) => {
+    const last = historyOf(kind)[0];
+    return `<a href="${href}" class="block bg-gradient-to-r ${grad} text-white p-5 rounded-3xl shadow-lg touch-active">
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0"><div class="text-2xl" aria-hidden="true">${icon}</div><div class="text-lg font-black">${title}</div><div class="text-xs text-white/80">${details}</div>
+          ${last ? `<div class="text-xs font-bold mt-1">Dernier résultat : ${last.good}/${last.total} ${last.passed ? '✓' : '✗'} (${fmtDate(last.date)})</div>` : ''}</div>
+        <i class="fa-solid fa-chevron-right text-xl" aria-hidden="true"></i>
+      </div>
+    </a>`;
+  };
   el.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Examen blanc — Société')}
-      <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
-        <p class="text-4xl text-center" aria-hidden="true">🏆</p>
-        <ul class="space-y-1.5">
-          <li>• Comme à l’examen officiel : <b>${EXAM_SIZE} questions</b>, <b>deux réponses possibles</b> à chaque fois, et il faut <b>${PASS_MARK} bonnes réponses</b> pour réussir.</li>
-          <li>• Comme à l’examen : 30 minutes, avec un compte à rebours. Chaque question est lue à voix haute, avec les deux réponses.</li>
-          <li>• Les questions sont tirées des ${KNS_QUESTIONS.length} questions de l’application, dans les 8 thèmes.</li>
-          <li>• Pas de correction pendant l’examen : le bilan détaillé arrive à la fin.</li>
-        </ul>
-        <p class="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 border border-amber-200 dark:border-amber-800 rounded-2xl p-3">À l’examen officiel, chaque question accompagne une photo du pack d’étude « Naar Nederland » de DUO et elle est aussi lue à voix haute. Nos questions couvrent les mêmes thèmes mais ne sont pas les 100 questions officielles : travaillez aussi avec ce pack (naarnederland.nl).</p>
-        <a href="#/examen/go" class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Commencer l’examen</a>
-      </div>
-      ${hist.length ? `<div class="${CARD} p-5 space-y-2"><h2 class="font-black dark:text-white">Vos derniers examens</h2>
-        ${hist.map((h) => `<div class="flex justify-between text-sm dark:text-white"><span>${new Date(h.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span><span class="font-bold ${h.passed ? 'text-emerald-600' : 'text-red-600'}">${h.good}/${h.total} ${h.passed ? '✓' : '✗'}</span></div>`).join('')}</div>` : ''}
+      ${pageTitle('Examens blancs', 'Il faut réussir les trois parties. Faites chaque examen blanc dans les conditions réelles : au calme, d’une traite, sans aide.')}
+      ${card('#/examen/societe', '🏛️', 'Société (KNS)', '30 questions · 2 réponses · 30 min · seuil 21', 'kns', 'from-amber-500 to-orange-600')}
+      ${card('#/examen/lecture', '📄', 'Lecture', '9 textes · 18 questions · 3 réponses · 35 min', 'lecture', 'from-teal-600 to-delftBlue')}
+      ${card('#/parler/examen', '🗣️', 'Parler', '10 questions + 12 phrases · 60 s par réponse', 'parler', 'from-blue-600 to-delftBlue')}
       ${backLink('#/', 'Accueil')}
     </div>`;
 }
@@ -158,7 +213,7 @@ export function renderProgres(el) {
   const maxN = Math.max(1, ...days.map((d) => d.n));
   const acc7 = accuracyLastDays(7);
   const weak = weakest(5);
-  const exams = store.data.exams.filter((e) => (e.kind || 'kns') === 'kns').slice(-5);
+  const examKinds = [['kns', '🏛️ Société'], ['lecture', '📄 Lecture'], ['parler', '🗣️ Parler']].map(([k, label]) => ({ k, label, list: store.data.exams.filter((e) => (e.kind || 'kns') === k).slice(-5) })).filter((x) => x.list.length);
 
   const stat = (value, label) => `<div class="${CARD} p-4 text-center"><div class="text-2xl font-black text-delftBlue dark:text-white">${value}</div><div class="text-xs font-bold text-slate-500 dark:text-slate-400">${label}</div></div>`;
 
@@ -206,9 +261,10 @@ export function renderProgres(el) {
           : '<p class="text-sm text-slate-500">Pas encore d’erreurs enregistrées. Continuez !</p>'}
       </section>
 
-      ${exams.length ? `<section class="${CARD} p-5 space-y-2"><h2 class="font-black dark:text-white">Examens blancs</h2>
-        <div class="flex items-end gap-2 h-20">${exams.map((h) => `<div class="flex-1 flex flex-col items-center gap-1 h-full justify-end"><span class="text-[10px] font-bold dark:text-white">${h.good}</span><div class="w-full rounded-t-md ${h.passed ? 'bg-emerald-500' : 'bg-red-400'}" style="height:${pct(h.good, h.total)}%"></div></div>`).join('')}</div>
-        <p class="text-xs text-slate-500">Seuil de réussite : ${PASS_MARK} / ${EXAM_SIZE}.</p></section>` : ''}
+      ${examKinds.length ? `<section class="${CARD} p-5 space-y-4"><div class="flex justify-between items-center"><h2 class="font-black dark:text-white">Examens blancs</h2><a href="#/examen" class="text-sm font-bold text-dutchOrange">Passer un examen</a></div>
+        ${examKinds.map((x) => `<div class="space-y-1"><p class="text-sm font-bold dark:text-white">${x.label}</p>
+          <div class="flex items-end gap-2 h-16">${x.list.map((h) => `<div class="flex-1 flex flex-col items-center gap-1 h-full justify-end"><span class="text-[10px] font-bold dark:text-white">${h.good}/${h.total}</span><div class="w-full rounded-t-md ${h.passed ? 'bg-emerald-500' : 'bg-red-400'}" style="height:${Math.max(6, pct(h.good, h.total))}%"></div></div>`).join('')}</div></div>`).join('')}
+        <p class="text-xs text-slate-500">Vert = seuil atteint. Société : ${PASS_MARK}/${EXAM_SIZE} (officiel) ; Lecture et Parler : seuils indicatifs.</p></section>` : ''}
     </div>`;
 }
 

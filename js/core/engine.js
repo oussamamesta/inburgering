@@ -42,7 +42,7 @@ function statusLabel(id) {
 // cfg : { id, type, cat, prompt, promptFr, opts, optsFr, corr, expl, lang ('nl'|'fr'), audio, top, after, exam }
 export function mcq(host, cfg, onDone) {
   const lang = cfg.lang || 'nl';
-  const hasFr = lang === 'nl' && (cfg.promptFr || cfg.optsFr);
+  const hasFr = !cfg.exam && lang === 'nl' && (cfg.promptFr || cfg.optsFr); // pas de traduction pendant un examen blanc
   let showFr = hasFr && !!store.data.settings.showFr;
   const order = shuffle(cfg.opts.map((_, i) => i));
 

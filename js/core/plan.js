@@ -10,8 +10,8 @@ import { idsOf, READING, KNS_CATS } from '../content/index.js';
 import { VOCAB } from '../content/vocab.js';
 
 export const PARTS = {
-  kns: { label: 'Société (KNS)', icon: '🏛️', href: '#/kns', exam: 'kns', examHref: '#/examen', ids: () => [...idsOf('kns'), ...idsOf('manuel')] },
-  lecture: { label: 'Lecture', icon: '📄', href: '#/lecture', exam: 'lecture', examHref: '#/lecture/examen', ids: () => idsOf('reading') },
+  kns: { label: 'Société (KNS)', icon: '🏛️', href: '#/kns', exam: 'kns', examHref: '#/examen/societe', ids: () => [...idsOf('kns'), ...idsOf('manuel')] },
+  lecture: { label: 'Lecture', icon: '📄', href: '#/lecture', exam: 'lecture', examHref: '#/examen/lecture', ids: () => idsOf('reading') },
   parler: { label: 'Parler', icon: '🗣️', href: '#/parler', exam: 'parler', examHref: '#/parler/examen', ids: () => idsOf('speak').filter((id) => !id.startsWith('sp-n')) },
 };
 

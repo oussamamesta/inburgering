@@ -1,7 +1,7 @@
 // Service worker : garde une copie de l’application pour l’utiliser sans connexion.
 // Pensez à changer VERSION à chaque mise à jour (voir README).
 
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.2.1';
 const CACHE = `inburgering-${VERSION}`;
 
 const FILES = [

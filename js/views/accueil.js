@@ -153,8 +153,8 @@ export function render(el) {
         </div>
         <a href="#/examen" class="block bg-gradient-to-r from-amber-500 to-orange-500 text-white p-5 rounded-3xl shadow-lg touch-active">
           <div class="flex items-center justify-between gap-3">
-            <div><div class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-black w-fit mb-1">🏆 Examen blanc</div><div class="text-lg font-black">Société : 30 questions, seuil 21</div></div>
-            <span class="${BTN_PRIMARY} !bg-slate-900">Commencer</span>
+            <div><div class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-black w-fit mb-1">🏆 Examens blancs</div><div class="text-lg font-black">Société · Lecture · Parler</div><div class="text-xs text-white/85">Chronométrés, au format de l’examen</div></div>
+            <span class="${BTN_PRIMARY} !bg-slate-900">Choisir</span>
           </div>
         </a>
       </section>

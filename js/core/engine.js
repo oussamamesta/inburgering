@@ -1,0 +1,567 @@
+// Moteur d’exercices commun : QCM, cartes-mots, construction de phrases, et séances.
+// Chaque exercice enregistre la réponse dans le modèle de l’apprenant (learner.js).
+
+import { esc, shuffle, $, $$, onLeave } from './util.js';
+import { record, get, MASTERED_BOX } from './learner.js';
+import { playSound } from './audio.js';
+import { store } from './store.js';
+import { CARD, BTN_PRIMARY, BTN_SECONDARY, audioBtn, iconSay, bar, ask } from './ui.js';
+import { lookup, KNS_CATS } from '../content/index.js';
+import { POS_LABELS } from '../content/vocab.js';
+import { VOCAB } from '../content/index.js';
+import { speak } from './audio.js';
+import { canRecord, canRecognize, startRecording, recognize, normText, micErrorText } from './micro.js';
+
+const LETTERS = ['A', 'B', 'C', 'D'];
+
+const OPT_BASE = 'flex-1 text-left p-3.5 rounded-2xl border-2 font-bold text-sm flex items-start gap-3 transition';
+const OPT_IDLE = `${OPT_BASE} border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/60 dark:text-white touch-active`;
+const OPT_OK = `${OPT_BASE} border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100`;
+const OPT_BAD = `${OPT_BASE} border-red-500 bg-red-50 text-red-900 dark:bg-red-950/50 dark:text-red-100 animate-shake`;
+const OPT_DIM = `${OPT_BASE} border-slate-200 dark:border-slate-700 opacity-50 dark:text-white`;
+const OPT_PICKED = `${OPT_BASE} border-delftBlue bg-blue-50 text-delftBlue dark:border-blue-400 dark:bg-blue-950/50 dark:text-blue-100`;
+
+const feedbackBox = (ok, inner) => `
+  <div class="p-4 rounded-2xl border text-sm space-y-2 animate-pop ${ok
+    ? 'bg-emerald-50 border-emerald-300 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-100'
+    : 'bg-red-50 border-red-300 text-red-950 dark:bg-red-950/40 dark:border-red-800 dark:text-red-100'}" role="status">
+    <p class="font-black">${ok ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Bonne réponse !' : '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Pas tout à fait.'}</p>
+    ${inner}
+  </div>`;
+
+function statusLabel(id) {
+  const it = get(id);
+  if (!it) return '<span class="text-slate-400">Nouveau</span>';
+  if (it.box >= MASTERED_BOX) return '<span class="text-emerald-600 dark:text-emerald-400">Maîtrisé</span>';
+  return '<span class="text-amber-600 dark:text-amber-400">En cours</span>';
+}
+
+// ── QCM ─────────────────────────────────────────────────
+// cfg : { id, type, cat, prompt, promptFr, opts, optsFr, corr, expl, lang ('nl'|'fr'), audio, top, after, exam }
+export function mcq(host, cfg, onDone) {
+  const lang = cfg.lang || 'nl';
+  const hasFr = lang === 'nl' && (cfg.promptFr || cfg.optsFr);
+  let showFr = hasFr && !!store.data.settings.showFr;
+  const order = shuffle(cfg.opts.map((_, i) => i));
+
+  host.innerHTML = `
+    <div class="space-y-4">
+      ${cfg.top || ''}
+      <div class="${CARD} p-5 space-y-4">
+        <div class="flex items-start gap-3">
+          <h2 class="flex-1 text-lg font-black leading-snug text-slate-900 dark:text-white selectable" lang="${lang}">${esc(cfg.prompt)}</h2>
+          ${cfg.audio ? iconSay(cfg.prompt) : ''}
+        </div>
+        ${cfg.promptFr ? `<p data-fr class="text-sm italic text-slate-500 dark:text-slate-400 ${showFr ? '' : 'hidden'}">${esc(cfg.promptFr)}</p>` : ''}
+        ${hasFr ? `<button type="button" data-toggle-fr class="inline-flex items-center gap-1.5 text-xs font-bold text-delftBlue dark:text-blue-300 py-1"><i class="fa-solid fa-language" aria-hidden="true"></i> <span>${showFr ? 'Masquer la traduction' : 'Voir la traduction'}</span></button>` : ''}
+        <div class="space-y-2" role="group" aria-label="Réponses possibles">
+          ${order.map((oi, pos) => `
+            <div class="flex items-stretch gap-2">
+              <button type="button" data-opt="${oi}" class="${OPT_IDLE}">
+                <span data-badge class="w-7 h-7 shrink-0 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-xs font-black">${LETTERS[pos]}</span>
+                <span class="flex-1"><span lang="${lang}">${esc(cfg.opts[oi])}</span>
+                ${cfg.optsFr ? `<span data-fr class="block text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 ${showFr ? '' : 'hidden'}">${esc(cfg.optsFr[oi])}</span>` : ''}</span>
+              </button>
+              ${cfg.audio ? iconSay(cfg.opts[oi]) : ''}
+            </div>`).join('')}
+        </div>
+        <div data-feedback></div>
+      </div>
+    </div>`;
+
+  const setFr = (v) => {
+    showFr = v;
+    $$('[data-fr]', host).forEach((el) => el.classList.toggle('hidden', !v));
+    const t = $('[data-toggle-fr] span', host);
+    if (t) t.textContent = v ? 'Masquer la traduction' : 'Voir la traduction';
+  };
+  $('[data-toggle-fr]', host)?.addEventListener('click', () => setFr(!showFr));
+
+  let answered = false;
+  $$('[data-opt]', host).forEach((btn) =>
+    btn.addEventListener('click', () => {
+      if (answered) return;
+      answered = true;
+      const chosen = Number(btn.dataset.opt);
+      const ok = chosen === cfg.corr;
+      if (cfg.id) record(cfg.id, ok, { type: cfg.type, cat: cfg.cat });
+      $$('[data-opt]', host).forEach((b) => (b.disabled = true));
+
+      if (cfg.exam) {
+        btn.className = OPT_PICKED;
+        onDone?.(ok, chosen);
+        return;
+      }
+      playSound(ok ? 'correct' : 'wrong');
+      $$('[data-opt]', host).forEach((b) => {
+        const oi = Number(b.dataset.opt);
+        const badge = $('[data-badge]', b);
+        if (oi === cfg.corr) {
+          b.className = OPT_OK;
+          badge.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i>';
+          b.setAttribute('aria-label', 'Bonne réponse : ' + cfg.opts[oi]);
+        } else if (oi === chosen) {
+          b.className = OPT_BAD;
+          badge.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+          b.setAttribute('aria-label', 'Votre réponse (fausse) : ' + cfg.opts[oi]);
+        } else b.className = OPT_DIM;
+      });
+      if (hasFr) setFr(true);
+      $('[data-feedback]', host).innerHTML = feedbackBox(ok, `
+        ${!ok ? `<p>Bonne réponse : <b lang="${lang}">${esc(cfg.opts[cfg.corr])}</b></p>` : ''}
+        ${cfg.expl ? `<p class="selectable">${esc(cfg.expl)}</p>` : ''}
+        ${cfg.after || ''}`);
+      onDone?.(ok, chosen);
+    }),
+  );
+}
+
+// ── Carte-mot ───────────────────────────────────────────
+export function flashcard(host, w, onDone) {
+  const head = w.art ? `<span class="text-slate-400 font-bold text-2xl mr-1">${w.art}</span>` : '';
+  const say = (w.art ? w.art + ' ' : '') + w.nl;
+  host.innerHTML = `
+    <div class="space-y-4">
+      <div class="perspective-1000">
+        <div data-card role="button" tabindex="0" aria-label="Retourner la carte" class="transform-style-3d relative w-full h-[300px] cursor-pointer">
+          <div class="backface-hidden absolute inset-0 ${CARD} border-2 p-6 flex flex-col justify-between text-center">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2.5 py-0.5 rounded-full">${esc(w.theme)}</span>
+              ${statusLabel(w.id)}
+            </div>
+            <div class="space-y-3">
+              <div lang="nl">${head}<span class="text-4xl font-black text-slate-900 dark:text-white">${esc(w.nl)}</span></div>
+              <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">${POS_LABELS[w.pos]}</div>
+              <div>${audioBtn(say, 'Écouter')}</div>
+            </div>
+            <p class="text-xs text-slate-400">Touchez la carte pour voir la traduction</p>
+          </div>
+          <div class="backface-hidden rotate-y-180 absolute inset-0 p-6 flex flex-col justify-between text-center bg-slate-900 text-white rounded-3xl border-2 border-slate-700">
+            <div class="text-xs text-slate-400 text-left font-bold">Traduction</div>
+            <div class="space-y-2">
+              <p class="text-2xl font-black text-amber-400">${esc(w.fr)}</p>
+              ${w.art ? `<p class="text-xs text-slate-300">Article : <b>${w.art}</b>${w.pl ? ` · Pluriel : <b lang="nl">de ${esc(w.pl)}</b>` : ''}</p>` : ''}
+              <p class="text-base font-bold selectable" lang="nl">${esc(w.ex)}</p>
+              <p class="text-xs text-slate-300 italic">${esc(w.exFr)}</p>
+              <div>${audioBtn(w.ex, 'Écouter la phrase')}</div>
+            </div>
+            <span></span>
+          </div>
+        </div>
+      </div>
+      <div data-rate class="hidden grid grid-cols-2 gap-2">
+        <button type="button" data-ok="0" class="py-3.5 rounded-2xl font-bold text-sm bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 touch-active"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Je ne savais pas</button>
+        <button type="button" data-ok="1" class="py-3.5 rounded-2xl font-bold text-sm bg-emerald-500 text-white shadow-md touch-active"><i class="fa-solid fa-check" aria-hidden="true"></i> Je savais</button>
+      </div>
+      <p data-hint class="text-center text-xs text-slate-400">Essayez de trouver la traduction, puis retournez la carte.</p>
+    </div>`;
+
+  const card = $('[data-card]', host);
+  let flipped = false;
+  const flip = () => {
+    flipped = !flipped;
+    card.classList.toggle('rotate-y-180', flipped);
+    if (flipped) {
+      $('[data-rate]', host).classList.remove('hidden');
+      $('[data-hint]', host).classList.add('hidden');
+    }
+  };
+  card.addEventListener('click', (e) => { if (!e.target.closest('[data-say]')) flip(); });
+  card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
+  $$('[data-ok]', host).forEach((b) => b.addEventListener('click', () => {
+    const ok = b.dataset.ok === '1';
+    record(w.id, ok, { type: 'vocab', cat: w.theme });
+    playSound(ok ? 'correct' : 'wrong');
+    onDone?.(ok, null, { auto: true });
+  }));
+}
+
+// ── Construire une phrase ───────────────────────────────
+const norm = (s) => s.toLowerCase().replace(/[.,!?¿¡;:]/g, '').replace(/\s+/g, ' ').trim();
+
+export function puzzle(host, p, onDone) {
+  const words = p.answer.replace(/[.,!?]/g, '').split(/\s+/).map((w, i) => (i === 0 ? w.toLowerCase() : w));
+  let bank = shuffle(words.map((w, i) => ({ w, i })));
+  for (let t = 0; t < 5 && bank.map((b) => b.w).join(' ') === words.join(' '); t++) bank = shuffle(bank);
+  let chosen = [];
+  let done = false;
+
+  const draw = () => {
+    host.innerHTML = `
+      <div class="${CARD} p-5 space-y-4">
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Traduisez en néerlandais en touchant les mots dans le bon ordre :</p>
+        <p class="bg-purple-50 dark:bg-purple-950/40 text-purple-950 dark:text-purple-100 p-3 rounded-2xl text-base font-black">« ${esc(p.fr)} »</p>
+        <div class="min-h-[64px] p-2 bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-purple-300 dark:border-slate-600 rounded-2xl flex flex-wrap gap-1.5" aria-label="Votre phrase">
+          ${chosen.length ? chosen.map((bi, k) => `<button type="button" data-remove="${k}" ${done ? 'disabled' : ''} class="bg-purple-600 text-white px-3 py-2 rounded-xl text-sm font-bold animate-pop" lang="nl">${esc(bank[bi].w)}${done ? '' : ' <span aria-hidden="true">×</span>'}</button>`).join('') : '<span class="text-sm text-slate-400 p-2">Touchez les mots ci-dessous…</span>'}
+        </div>
+        <div class="flex flex-wrap gap-1.5" aria-label="Mots disponibles">
+          ${bank.map((b, bi) => { const used = chosen.includes(bi); return `<button type="button" data-add="${bi}" ${used || done ? 'disabled' : ''} class="px-3 py-2 rounded-xl text-sm font-bold border ${used ? 'bg-slate-200 dark:bg-slate-700 border-transparent opacity-30' : 'bg-white dark:bg-slate-700 dark:text-white border-slate-200 dark:border-slate-600 shadow-sm touch-active'}" lang="nl">${esc(b.w)}</button>`; }).join('')}
+        </div>
+        ${done ? '' : `<div class="flex justify-between items-center pt-1">
+          <button type="button" data-clear class="text-sm font-bold text-slate-500 py-2 px-1">Effacer</button>
+          <button type="button" data-check class="${BTN_PRIMARY} !bg-purple-600" ${chosen.length === words.length ? '' : 'disabled'}>Vérifier</button>
+        </div>`}
+        <div data-feedback></div>
+      </div>`;
+    $$('[data-add]', host).forEach((b) => b.addEventListener('click', () => { chosen.push(Number(b.dataset.add)); draw(); }));
+    $$('[data-remove]', host).forEach((b) => b.addEventListener('click', () => { chosen.splice(Number(b.dataset.remove), 1); draw(); }));
+    $('[data-clear]', host)?.addEventListener('click', () => { chosen = []; draw(); });
+    $('[data-check]', host)?.addEventListener('click', check);
+  };
+
+  const check = () => {
+    const built = chosen.map((bi) => bank[bi].w).join(' ');
+    const ok = [p.answer, ...p.alts].some((a) => norm(a) === norm(built));
+    record(p.id, ok, { type: 'puzzle', cat: 'phrases' });
+    playSound(ok ? 'correct' : 'wrong');
+    done = true;
+    draw();
+    const others = [p.answer, ...p.alts];
+    $('[data-feedback]', host).innerHTML = feedbackBox(ok, `
+      <p class="flex flex-wrap items-center gap-2">${ok ? 'Votre phrase est correcte.' : 'Phrase attendue :'} <b lang="nl" class="selectable">${esc(p.answer)}</b> ${audioBtn(p.answer, 'Écouter')}</p>
+      ${others.length > 1 ? `<p class="text-xs">Aussi correct : ${others.filter((a) => a !== p.answer).map((a) => `<span lang="nl" class="font-bold">${esc(a)}</span>`).join(' · ')}</p>` : ''}
+      <p class="text-sm">💡 ${p.rule}</p>`);
+    onDone?.(ok);
+  };
+  draw();
+}
+
+
+// ── Parler : répondre, compléter, répéter ───────────────
+// Déroulé : écouter → répondre à voix haute (enregistrement / vérification facultatifs) → voir le modèle → s’auto-évaluer.
+export function speakItem(host, it, onDone) {
+  const kinds = {
+    vraag: { label: 'Répondez à la question', say: it.q, text: it.q, fr: it.qFr, models: it.model, keys: it.keys },
+    afmaken: { label: 'Écoutez, puis complétez la phrase', say: `${it.context} ${it.start?.replace('…', '')}`, text: `${it.context} ${it.start}`, fr: it.fr, models: [it.full], keys: it.answers },
+    nazeggen: { label: 'Écoutez, puis répétez la phrase', say: it.nl, text: it.nl, fr: it.fr, models: [it.nl], keys: normText(it.nl || '').split(' ') },
+  };
+  const k = kinds[it.kind];
+  const showTextDefault = it.kind === 'nazeggen';
+
+  host.innerHTML = `
+    <div class="${CARD} p-5 space-y-4">
+      <p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">${k.label}</p>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" data-play class="${BTN_PRIMARY} !bg-blue-600"><i class="fa-solid fa-play" aria-hidden="true"></i> Écouter</button>
+        <button type="button" data-play-slow class="${BTN_SECONDARY}"><i class="fa-solid fa-gauge-simple" aria-hidden="true"></i> Plus lentement</button>
+        <button type="button" data-show-text class="${BTN_SECONDARY}"><i class="fa-solid fa-eye" aria-hidden="true"></i> <span>${showTextDefault ? 'Masquer le texte' : 'Voir le texte'}</span></button>
+      </div>
+      <div data-text class="${showTextDefault ? '' : 'hidden'} space-y-1">
+        <p class="text-lg font-black text-slate-900 dark:text-white selectable" lang="nl">${esc(k.text)}</p>
+        <p class="text-sm italic text-slate-500 dark:text-slate-400">${esc(k.fr)}</p>
+      </div>
+      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+        <p class="text-sm font-bold text-slate-800 dark:text-slate-100">🗣️ À vous : répondez à voix haute, en phrase complète.</p>
+        <div class="flex flex-wrap gap-2">
+          ${canRecord ? `<button type="button" data-rec class="${BTN_SECONDARY}"><i class="fa-solid fa-microphone" aria-hidden="true"></i> <span>M’enregistrer</span></button>` : ''}
+          ${canRecognize ? `<button type="button" data-check class="${BTN_SECONDARY}"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Vérifier ma réponse</button>` : ''}
+        </div>
+        <div data-rec-out class="text-sm"></div>
+      </div>
+      <button type="button" data-reveal class="${BTN_PRIMARY} w-full">Voir une bonne réponse</button>
+      <div data-model class="hidden space-y-3">
+        <div class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 space-y-2">
+          <p class="text-xs font-black uppercase tracking-wider">${it.kind === 'vraag' ? 'Exemples de réponses' : 'Phrase modèle'}</p>
+          ${k.models.map((m) => `<p class="flex flex-wrap items-center gap-2"><b lang="nl" class="selectable">${esc(m)}</b> ${audioBtn(m, 'Écouter')}</p>`).join('')}
+          ${it.kind === 'afmaken' && it.answers.length > 1 ? `<p class="text-xs">Aussi accepté : ${it.answers.map((a) => `<span lang="nl" class="font-bold">${esc(a)}</span>`).join(', ')}</p>` : ''}
+          ${it.tip ? `<p class="text-sm">💡 ${esc(it.tip)}</p>` : ''}
+        </div>
+        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Comment était votre réponse ?</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" data-rate="0" class="py-3.5 rounded-2xl font-bold text-sm bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 touch-active"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> À retravailler</button>
+          <button type="button" data-rate="1" class="py-3.5 rounded-2xl font-bold text-sm bg-emerald-500 text-white shadow-md touch-active"><i class="fa-solid fa-check" aria-hidden="true"></i> Bien dit</button>
+        </div>
+      </div>
+    </div>`;
+
+  const play = (f = 1) => speak(k.say, f);
+  $('[data-play]', host).addEventListener('click', () => play());
+  $('[data-play-slow]', host).addEventListener('click', () => play(0.75));
+  $('[data-show-text]', host).addEventListener('click', (e) => {
+    const box = $('[data-text]', host);
+    box.classList.toggle('hidden');
+    e.currentTarget.querySelector('span').textContent = box.classList.contains('hidden') ? 'Voir le texte' : 'Masquer le texte';
+  });
+  // Lecture automatique à l’ouverture (si le navigateur l’autorise après un premier geste).
+  setTimeout(() => { if (document.body.contains(host)) play(); }, 350);
+
+  const out = $('[data-rec-out]', host);
+  let recording = null;
+  $('[data-rec]', host)?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    if (recording) { recording.stop(); return; }
+    try {
+      recording = await startRecording(20000);
+      btn.querySelector('span').textContent = 'Arrêter';
+      btn.classList.add('!bg-red-600', '!text-white');
+      out.innerHTML = '<p class="text-red-600 dark:text-red-400 font-bold">● Enregistrement… parlez maintenant.</p>';
+      const url = await recording.done;
+      recording = null;
+      btn.querySelector('span').textContent = 'M’enregistrer à nouveau';
+      btn.classList.remove('!bg-red-600', '!text-white');
+      out.innerHTML = `<p class="text-xs font-bold mb-1">Votre enregistrement : comparez-le au modèle.</p><audio controls src="${url}" class="w-full"></audio>`;
+    } catch (err) {
+      recording = null;
+      out.innerHTML = `<p class="text-amber-700 dark:text-amber-300">${esc(micErrorText(err))}</p>`;
+    }
+  });
+  $('[data-check]', host)?.addEventListener('click', async () => {
+    out.innerHTML = '<p class="font-bold text-blue-700 dark:text-blue-300">🎙️ J’écoute… parlez maintenant.</p>';
+    try {
+      const alts = await recognize();
+      if (!alts.length) { out.innerHTML = `<p class="text-amber-700 dark:text-amber-300">${esc(micErrorText({ message: 'no-speech' }))}</p>`; return; }
+      const heard = alts[0];
+      const all = alts.map(normText).join(' ');
+      const found = (k.keys || []).filter((w) => all.includes(normText(w)));
+      const good = it.kind === 'nazeggen' ? found.length >= Math.ceil(k.keys.length * 0.7) : found.length > 0;
+      out.innerHTML = `<p>Le téléphone a compris : <b lang="nl">« ${esc(heard)} »</b></p>
+        <p class="${good ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-300'} font-bold">${good ? '✓ Les mots importants sont là.' : 'Les mots attendus n’ont pas été reconnus. Réessayez, ou regardez le modèle.'}</p>
+        <p class="text-xs text-slate-500">La reconnaissance automatique n’est pas parfaite : à l’examen, ce sont des personnes qui écoutent.</p>`;
+    } catch (err) {
+      out.innerHTML = `<p class="text-amber-700 dark:text-amber-300">${esc(micErrorText(err))}</p>`;
+    }
+  });
+
+  $('[data-reveal]', host).addEventListener('click', (e) => {
+    e.currentTarget.classList.add('hidden');
+    $('[data-model]', host).classList.remove('hidden');
+    $('[data-text]', host).classList.remove('hidden');
+  });
+  $$('[data-rate]', host).forEach((b) => b.addEventListener('click', () => {
+    const ok = b.dataset.rate === '1';
+    record(it.id, ok, { type: 'speak', cat: it.kind });
+    playSound(ok ? 'correct' : 'wrong');
+    onDone?.(ok, null, { auto: true });
+  }));
+}
+
+// ── Lecture, partie 1 : reconnaître des mots ────────────
+// Mode « écouter » : on entend un mot et on choisit le mot écrit. Mode « lire » : on lit un mot et on choisit le bon son.
+export function wordMatch(host, it, onDone) {
+  const w = it.word;
+  const mode = Math.random() < 0.5 ? 'ecouter' : 'lire';
+  const similar = VOCAB.filter((x) => x.nl !== w.nl && x.nl.length > 1)
+    .map((x) => [x, Math.abs(x.nl.length - w.nl.length) + (x.nl[0] === w.nl[0] ? -2 : 0) + Math.random() * 3])
+    .sort((a, b) => a[1] - b[1]).slice(0, 3).map(([x]) => x);
+  const options = shuffle([w, ...similar]);
+  const label = (x) => (x.art ? x.art + ' ' : '') + x.nl;
+
+  host.innerHTML = `
+    <div class="${CARD} p-5 space-y-4">
+      <p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">${mode === 'ecouter' ? 'Écoutez le mot, puis choisissez le mot écrit' : 'Lisez le mot, écoutez les 4 sons, puis choisissez le bon'}</p>
+      ${mode === 'ecouter'
+        ? `<button type="button" data-say="${esc(label(w))}" class="${BTN_PRIMARY} !bg-teal-600"><i class="fa-solid fa-play" aria-hidden="true"></i> Écouter le mot</button>`
+        : `<p class="text-3xl font-black text-center text-slate-900 dark:text-white py-2" lang="nl">${esc(label(w))}</p>`}
+      <div class="grid grid-cols-2 gap-2" role="group" aria-label="Réponses possibles">
+        ${options.map((x, i) => mode === 'ecouter'
+          ? `<button type="button" data-pick="${esc(x.nl)}" class="${OPT_IDLE} justify-center text-center" lang="nl">${esc(label(x))}</button>`
+          : `<div class="flex gap-1.5"><button type="button" data-say="${esc(label(x))}" class="flex-1 ${BTN_SECONDARY}" aria-label="Écouter le son ${i + 1}"><i class="fa-solid fa-volume-high" aria-hidden="true"></i> Son ${i + 1}</button><button type="button" data-pick="${esc(x.nl)}" class="px-3 rounded-2xl border-2 border-slate-200 dark:border-slate-600 font-black text-sm dark:text-white" aria-label="Choisir le son ${i + 1}">${LETTERS[i]}</button></div>`).join('')}
+      </div>
+      <div data-feedback></div>
+    </div>`;
+  if (mode === 'ecouter') setTimeout(() => { if (document.body.contains(host)) speak(label(w)); }, 350);
+
+  let answered = false;
+  $$('[data-pick]', host).forEach((b) => b.addEventListener('click', () => {
+    if (answered) return;
+    answered = true;
+    const ok = b.dataset.pick === w.nl;
+    record(it.id, ok, { type: 'wordmatch', cat: 'mots-lecture' });
+    playSound(ok ? 'correct' : 'wrong');
+    $$('[data-pick]', host).forEach((x) => { x.disabled = true; if (x.dataset.pick === w.nl) x.classList.add('!border-emerald-500', '!bg-emerald-50', 'dark:!bg-emerald-950/50'); else if (x === b) x.classList.add('!border-red-500'); });
+    $('[data-feedback]', host).innerHTML = feedbackBox(ok, `<p class="flex flex-wrap items-center gap-2">Le mot était <b lang="nl">${esc(label(w))}</b> = ${esc(w.fr)} ${audioBtn(label(w), 'Écouter')}</p>`);
+    onDone?.(ok);
+  }));
+}
+
+// ── Rendu d’un élément selon son type ───────────────────
+const DOC_STYLES = {
+  blue: 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900',
+  green: 'bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-900',
+  amber: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900',
+  orange: 'bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-900',
+  red: 'bg-white dark:bg-slate-800 border-red-500 text-red-700 dark:text-red-300',
+  grey: 'bg-slate-100 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600',
+  plain: 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600',
+};
+
+export function renderItem(host, id, opts = {}, onDone) {
+  const entry = lookup(id);
+  if (!entry) { host.innerHTML = '<p class="text-sm text-slate-500">Élément introuvable.</p>'; return; }
+  const { type, item } = entry;
+  const exam = !!opts.exam;
+
+  if (type === 'kns') {
+    const cat = KNS_CATS[item.cat];
+    let { opts: kOpts, optsFr: kFr, corr: kCorr } = item;
+    if (exam) {
+      // Comme à l’examen officiel : deux réponses possibles seulement.
+      const others = kOpts.map((_, i) => i).filter((i) => i !== kCorr);
+      const pickIdx = [kCorr, others[Math.floor(Math.random() * others.length)]];
+      kOpts = pickIdx.map((i) => item.opts[i]);
+      kFr = pickIdx.map((i) => item.optsFr[i]);
+      kCorr = 0;
+    }
+    mcq(host, { id, type, cat: item.cat, prompt: item.q, promptFr: item.qFr, opts: kOpts, optsFr: kFr, corr: kCorr, expl: item.expl, audio: true, exam,
+      top: `<div class="text-xs font-bold text-slate-500 dark:text-slate-400">${cat.icon} ${esc(cat.label)}</div>` }, onDone);
+  } else if (type === 'grammar') {
+    mcq(host, { id, type, cat: 'grammaire', prompt: item.q, promptFr: item.qFr, opts: item.opts, corr: item.corr, expl: item.expl, audio: true, exam }, onDone);
+  } else if (type === 'reading') {
+    mcq(host, { id, type, cat: 'lecture', prompt: item.q, promptFr: item.qFr, opts: item.opts, corr: item.corr, expl: item.expl, audio: false, exam,
+      top: `<div class="${CARD} p-4 space-y-2"><div class="text-xs font-bold text-slate-500 dark:text-slate-400"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> ${esc(item.title)}</div>
+        <div class="p-4 rounded-2xl border ${DOC_STYLES[item.style] || DOC_STYLES.plain} text-[15px] leading-relaxed dark:text-slate-100 selectable" lang="nl">${item.doc}</div></div>` }, onDone);
+  } else if (type === 'listening') {
+    mcq(host, { id, type, cat: 'ecoute', prompt: item.q, promptFr: item.qFr, opts: item.opts, corr: item.corr, audio: true, exam,
+      top: `<div class="${CARD} p-5 text-center space-y-3">
+          <div class="w-14 h-14 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 rounded-2xl flex items-center justify-center text-2xl mx-auto" aria-hidden="true">🎧</div>
+          <p class="text-sm text-slate-600 dark:text-slate-300">Écoutez le message (autant de fois que nécessaire), puis répondez.</p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <button type="button" data-say="${esc(item.text)}" class="${BTN_PRIMARY} !bg-blue-600"><i class="fa-solid fa-play" aria-hidden="true"></i> Écouter le message</button>
+            <button type="button" data-say="${esc(item.text)}" data-say-rate="0.75" class="${BTN_SECONDARY}"><i class="fa-solid fa-gauge-simple" aria-hidden="true"></i> Plus lentement</button>
+          </div></div>`,
+      after: `<div class="pt-2 border-t border-black/10 dark:border-white/10 space-y-1"><p class="text-xs font-bold">Transcription :</p><p class="selectable" lang="nl">${esc(item.text)}</p><p class="text-xs italic opacity-80">${esc(item.textFr)}</p></div>` }, onDone);
+  } else if (type === 'manuel') {
+    mcq(host, { id, type, cat: item.cat, prompt: item.q, opts: item.opts, corr: item.corr, expl: item.tip, lang: 'fr', audio: false, exam,
+      top: `<div class="text-xs font-bold text-slate-500 dark:text-slate-400">📖 Manuel : ${esc(item.title)}</div>` }, onDone);
+  } else if (type === 'vocab') {
+    flashcard(host, item, onDone);
+  } else if (type === 'puzzle') {
+    puzzle(host, item, onDone);
+  } else if (type === 'speak') {
+    speakItem(host, item, onDone);
+  } else if (type === 'wordmatch') {
+    wordMatch(host, item, onDone);
+  }
+}
+
+// Texte court décrivant un élément (pour les bilans).
+export function describe(id) {
+  const e = lookup(id);
+  if (!e) return { label: id };
+  const it = e.item;
+  switch (e.type) {
+    case 'kns': case 'grammar': case 'reading': case 'listening':
+      return { label: it.q, answer: it.opts[it.corr], expl: it.expl || '', fr: it.qFr };
+    case 'manuel': return { label: it.q, answer: it.opts[it.corr], expl: it.tip };
+    case 'vocab': return { label: (it.art ? it.art + ' ' : '') + it.nl, answer: it.fr };
+    case 'puzzle': return { label: it.fr, answer: it.answer };
+    case 'speak': return it.kind === 'vraag' ? { label: it.q, fr: it.qFr, answer: it.model[0], expl: it.tip }
+      : it.kind === 'afmaken' ? { label: `${it.context} ${it.start}`, fr: it.fr, answer: it.full } : { label: it.nl, fr: it.fr, answer: it.nl, expl: it.tip };
+    case 'wordmatch': return { label: (it.word.art ? it.word.art + ' ' : '') + it.word.nl, answer: it.word.fr };
+    default: return { label: id };
+  }
+}
+
+// ── Séance : enchaîne plusieurs éléments, puis affiche un bilan ──
+// cfg : { title, ids, exam, backHash, backLabel, onFinish(results), passMark }
+export function session(host, cfg) {
+  const ids = cfg.ids;
+  const results = [];
+  let idx = 0;
+  let timer = null;
+  const start = Date.now();
+
+  if (!ids.length) {
+    host.innerHTML = `<div class="${CARD} p-6 text-center space-y-3"><p class="text-3xl">🎉</p><p class="font-bold dark:text-white">Rien à faire ici pour l’instant.</p><a href="${cfg.backHash || '#/'}" class="${BTN_PRIMARY}">Retour</a></div>`;
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="max-w-xl mx-auto space-y-4">
+      <div class="flex items-center justify-between gap-2">
+        <a href="${cfg.backHash || '#/'}" data-quit class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 py-1"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Quitter</a>
+        <span class="text-sm font-black text-slate-700 dark:text-slate-200 truncate">${esc(cfg.title)}</span>
+        <span data-timer class="text-xs font-bold text-slate-500 tabular-nums">${cfg.exam ? '0:00' : ''}</span>
+      </div>
+      <div class="space-y-1.5"><div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400"><span data-count></span><span data-score></span></div><div data-bar></div></div>
+      <div data-ex></div>
+      <div data-foot class="flex justify-end"></div>
+    </div>`;
+
+  const exHost = $('[data-ex]', host);
+  const foot = $('[data-foot]', host);
+
+  $('[data-quit]', host).addEventListener('click', async (e) => {
+    if (!results.length || results.length >= ids.length) return;
+    e.preventDefault();
+    if (await ask('Quitter la séance ?\nVos réponses déjà données sont enregistrées.', 'Quitter')) location.hash = cfg.backHash || '#/';
+  });
+
+  if (cfg.exam) {
+    timer = setInterval(() => {
+      const s = Math.floor((Date.now() - start) / 1000);
+      const el = $('[data-timer]', host);
+      if (el) el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }, 1000);
+    onLeave(() => clearInterval(timer));
+  }
+
+  const header = () => {
+    $('[data-count]', host).textContent = `${Math.min(idx + 1, ids.length)} / ${ids.length}`;
+    $('[data-score]', host).textContent = cfg.exam ? '' : `${results.filter((r) => r.ok).length} correcte(s)`;
+    $('[data-bar]', host).innerHTML = bar(results.length, ids.length, 'bg-dutchOrange');
+  };
+
+  const next = () => {
+    idx += 1;
+    if (idx >= ids.length) finish();
+    else show();
+  };
+
+  const show = () => {
+    header();
+    foot.innerHTML = '';
+    renderItem(exHost, ids[idx], { exam: cfg.exam }, (ok, chosen, meta = {}) => {
+      results[idx] = { id: ids[idx], ok, chosen };
+      header();
+      if (cfg.exam || meta.auto) { setTimeout(next, cfg.exam ? 300 : 150); return; }
+      const last = idx === ids.length - 1;
+      foot.innerHTML = `<button type="button" class="${BTN_PRIMARY}">${last ? 'Voir le bilan' : 'Suivant'} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>`;
+      const b = foot.querySelector('button');
+      b.addEventListener('click', next);
+      b.focus({ preventScroll: true });
+      foot.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const finish = () => {
+    clearInterval(timer);
+    const good = results.filter((r) => r.ok).length;
+    const total = ids.length;
+    const seconds = Math.round((Date.now() - start) / 1000);
+    const passed = cfg.passMark ? good >= cfg.passMark : null;
+    playSound(passed === false ? 'wrong' : 'fanfare');
+    cfg.onFinish?.(results, { good, total, seconds, passed });
+    const wrong = results.filter((r) => !r.ok);
+
+    host.innerHTML = `
+      <div class="max-w-xl mx-auto space-y-4 animate-pop">
+        <div class="${CARD} p-6 text-center space-y-2">
+          <div class="text-4xl" aria-hidden="true">${passed === false ? '📚' : good === total ? '🏆' : '👏'}</div>
+          <h2 class="text-xl font-black dark:text-white">${esc(cfg.title)} — terminé</h2>
+          <p class="text-3xl font-black ${passed === false ? 'text-red-600' : 'text-emerald-600'}">${good} / ${total}</p>
+          ${cfg.passMark ? `<p class="text-sm font-bold ${passed ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}">${passed ? 'Réussi' : 'Pas encore réussi'} (seuil : ${cfg.passMark} / ${total})</p>` : ''}
+          ${cfg.exam ? `<p class="text-xs text-slate-500">Temps : ${Math.floor(seconds / 60)} min ${seconds % 60} s</p>` : ''}
+          ${cfg.summaryExtra ? cfg.summaryExtra(results) : ''}
+        </div>
+        ${wrong.length ? `
+          <div class="${CARD} p-5 space-y-3">
+            <h3 class="font-black dark:text-white">À retenir (${wrong.length})</h3>
+            <ul class="space-y-3">
+              ${wrong.map((r) => { const d = describe(r.id); return `<li class="text-sm border-l-4 border-red-400 pl-3 space-y-0.5"><p class="font-bold dark:text-white" lang="nl">${esc(d.label)}</p>${d.fr ? `<p class="text-xs italic text-slate-500">${esc(d.fr)}</p>` : ''}<p class="text-emerald-700 dark:text-emerald-400 font-bold">✓ ${esc(d.answer)}</p>${d.expl ? `<p class="text-slate-600 dark:text-slate-300 text-xs">${esc(d.expl)}</p>` : ''}</li>`; }).join('')}
+            </ul>
+            <p class="text-xs text-slate-500">Ces éléments reviendront automatiquement dans « Réviser ».</p>
+          </div>` : ''}
+        <div class="flex flex-wrap gap-2 justify-center">
+          ${wrong.length ? '<button type="button" data-retry class="' + BTN_PRIMARY + '"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refaire mes erreurs</button>' : ''}
+          <a href="${cfg.backHash || '#/'}" class="${BTN_SECONDARY}">${esc(cfg.backLabel || 'Retour')}</a>
+        </div>
+      </div>`;
+    $('[data-retry]', host)?.addEventListener('click', () =>
+      session(host, { ...cfg, title: 'Mes erreurs', ids: shuffle(wrong.map((r) => r.id)), exam: false, passMark: null, onFinish: null, summaryExtra: null }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  show();
+}

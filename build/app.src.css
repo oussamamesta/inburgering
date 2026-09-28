@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
+body { background: #f8fafc; color: #1e293b; }
+html.dark body { background: #0f172a; color: #f1f5f9; }
+
+html, body {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+button, .touch-active, [role="button"] { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.selectable { -webkit-user-select: text; user-select: text; }
+input, select, textarea { font-size: 16px; }
+
+.ios-header-padding { padding-top: max(8px, var(--sat)); }
+.ios-bottom-dock { padding-bottom: max(12px, var(--sab)); }
+.app-viewport { min-height: 100vh; min-height: 100dvh; }
+
+.perspective-1000 { perspective: 1000px; }
+.transform-style-3d { transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.rotate-y-180 { transform: rotateY(180deg); }
+
+@keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.animate-shake { animation: shake 0.35s ease-in-out; }
+@keyframes pop { 0% { transform: scale(0.97); opacity: 0.6; } 60% { transform: scale(1.01); } 100% { transform: scale(1); opacity: 1; } }
+.animate-pop { animation: pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.touch-active:active { transform: scale(0.97); opacity: 0.9; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@layer components {
+  .nav-link { @apply px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition; }
+  .nav-link.is-active { @apply text-dutchOrange bg-orange-50 dark:bg-orange-950/40 font-black; }
+  .tab-link { @apply flex flex-col items-center justify-center gap-0.5 h-full text-[11px] font-bold text-slate-500 dark:text-slate-400 touch-active; }
+  .tab-link.is-active { @apply text-dutchOrange; }
+  .sheet-link { @apply flex flex-col gap-0.5 p-3.5 rounded-2xl border text-left touch-active text-slate-900 dark:text-white; }
+  .sheet-link small { @apply text-xs text-slate-500 dark:text-slate-400; }
+  :focus-visible { @apply outline-none ring-2 ring-dutchOrange ring-offset-2 ring-offset-white dark:ring-offset-slate-900; }
+}

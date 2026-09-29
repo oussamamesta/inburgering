@@ -33,7 +33,7 @@ export const MANUEL_NL = {
 
   // ── Geschiedenis ──
   'm-gouden': P('Willem van Oranje en de Gouden Eeuw', [
-    'Lang geleden was Nederland van de koning van Spanje.', 'Willem van Oranje leidde de opstand tegen Spanje.', 'Hij heet de ‘Vader des Vaderlands’.',
+    'Lang geleden was Nederland van de koning van Spanje.', 'Willem van Oranje leidde de opstand tegen Spanje.', 'Hij wordt de ‘Vader des Vaderlands’ genoemd.',
     'Het volkslied, het Wilhelmus, gaat over hem.', 'In de 17e eeuw werd Nederland rijk door handel. Dat heet de Gouden Eeuw.', 'In die tijd schilderde Rembrandt.'],
     'Hoe heet de 17e eeuw in Nederland?', ['De Gouden Eeuw', 'De IJzertijd', 'De Renaissance']),
   'm-slavernij': P('Koloniën en slavernij', [
@@ -55,7 +55,7 @@ export const MANUEL_NL = {
 
   // ── Staatsinrichting en rechtsstaat ──
   'm5p1': P('De koning en de regering', [
-    'Koning Willem-Alexander is het staatshoofd.', 'De koning maakt geen wetten. De ministers besturen het land.', 'De minister-president leidt de regering.',
+    'Koning Willem-Alexander is het staatshoofd.', 'De ministers besturen het land, niet de koning.', 'De minister-president leidt de regering.',
     'Meestal werken een paar partijen samen in de regering.'],
     'Wat doet de koning?', ['Hij is staatshoofd, maar hij bestuurt het land niet', 'Hij maakt alleen alle wetten', 'Hij is de baas van de politie']),
   'm5p2': P('Het parlement en de verkiezingen', [
@@ -71,7 +71,7 @@ export const MANUEL_NL = {
     'Gratis juridisch advies krijg je bij het Juridisch Loket.', 'Vanaf 14 jaar moet je een identiteitsbewijs kunnen laten zien.'],
     'Vanaf welke leeftijd moet je een identiteitsbewijs kunnen laten zien?', ['14 jaar', '18 jaar', '21 jaar']),
   'm-ind': P('Verblijfsvergunning en naturalisatie', [
-    'De IND beslist over visa en verblijfsvergunningen.', 'Na aankomst krijg je een verblijfsvergunning.', 'Kijk goed wanneer je vergunning verloopt. Vraag op tijd een nieuwe aan.',
+    'De IND beslist over visa en verblijfsvergunningen.', 'Je verblijfsvergunning haal je op bij de IND.', 'Kijk goed wanneer je vergunning verloopt. Vraag op tijd een nieuwe aan.',
     'Na een aantal jaren kun je Nederlander worden. Dat heet naturalisatie.'],
     'Wie beslist over je verblijfsvergunning?', ['De IND', 'DUO', 'De gemeente']),
   'm7p1': P('De gemeente, BSN en DigiD', [
@@ -169,11 +169,11 @@ export const MANUEL_NL = {
     'Nederlanders zijn vaak direct. Dat is niet onbeleefd.'],
     'Wie feliciteer je op een verjaardag?', ['De jarige en de familie en vrienden', 'Alleen de jarige', 'Niemand']),
   'm3p3': P('De buren', [
-    'In een nieuw huis stel je je voor aan de buren.', 'Na 22.00 uur ben je rustig.', 'Heb je last van de buren? Praat eerst rustig met ze.',
+    'In een nieuw huis stel je je voor aan de buren.', 'Na 22.00 uur maak je geen lawaai.', 'Heb je last van de buren? Praat eerst rustig met ze.',
     'Helpt dat niet? Vraag hulp aan de verhuurder of aan buurtbemiddeling.'],
     'De buurman maakt ’s avonds laat lawaai. Wat doe je eerst?', ['Ik praat rustig met hem', 'Ik bel 112', 'Ik maak ook lawaai']),
   'm-verkeer': P('Fiets en verkeer', [
-    'Op een kruispunt zonder borden heeft verkeer van rechts voorrang.', 'Als het donker is, heeft je fiets een wit licht voor en een rood licht achter.', 'Ga je afslaan? Steek je arm uit.',
+    'Op een kruispunt zonder borden heeft verkeer van rechts voorrang.', 'Is het donker? Dan moet je fiets licht hebben: wit voor en rood achter.', 'Ga je afslaan? Steek je arm uit.',
     'In de bus en de trein check je in en uit.', 'Zet je fiets altijd op slot.'],
     'Wie heeft voorrang op een kruispunt zonder borden?', ['Verkeer van rechts', 'Verkeer van links', 'Wie het snelst rijdt']),
 };

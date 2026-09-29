@@ -40,7 +40,7 @@ const feedbackBox = (ok, inner) => `
 function statusLabel(id) {
   const it = get(id);
   if (!it) return `<span class="text-slate-400">${tri('Nieuw', 'nouveau')}</span>`;
-  if (it.box >= MASTERED_BOX) return `<span class="text-emerald-600 dark:text-emerald-400">${tri('Gekend', 'maîtrisé')}</span>`;
+  if (it.box >= MASTERED_BOX) return `<span class="text-emerald-600 dark:text-emerald-400">${tri('Geleerd', 'maîtrisé')}</span>`;
   return `<span class="text-amber-600 dark:text-amber-400">${tri('Bezig', 'en cours')}</span>`;
 }
 

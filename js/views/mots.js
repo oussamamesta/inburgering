@@ -34,9 +34,9 @@ export function renderCards(el, params = []) {
   const all = summary(VOCAB.map((w) => w.id));
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-5 animate-pop">
-      ${pageHero('mots', 'Woorden', tr('Begin met de kaarten. De oefeningen gebruiken daarna de woorden die je al kent.', 'Commencez par les cartes ; les exercices reprennent ensuite les mots déjà vus.'), [`${VOCAB.length} woorden A1`, `${all.mastered} gekend`, `${THEMES_LIST.length} thema’s`], 'Vocabulaire')}
+      ${pageHero('mots', 'Woorden', tr('Begin met de kaarten. De oefeningen gebruiken daarna de woorden die je al kent.', 'Commencez par les cartes ; les exercices reprennent ensuite les mots déjà vus.'), [`${VOCAB.length} woorden A1`, `${all.mastered} geleerd`, `${THEMES_LIST.length} thema’s`], 'Vocabulaire')}
       <div class="${CARD} p-4 space-y-2">
-        <div class="flex justify-between text-sm font-bold dark:text-white"><span>${tri('Gekende woorden', 'Mots maîtrisés')}</span><span>${all.mastered} / ${all.total} · ${all.seen} gezien</span></div>
+        <div class="flex justify-between text-sm font-bold dark:text-white"><span>${tri('Geleerde woorden', 'Mots maîtrisés')}</span><span>${all.mastered} / ${all.total} · ${all.seen} gezien</span></div>
         ${bar(all.mastered, all.total)}
       </div>
       <div class="grid grid-cols-3 gap-2">
@@ -51,7 +51,7 @@ export function renderCards(el, params = []) {
           const ids = sets.flatMap((st) => st.ids);
           const sm = summary(ids);
           return `<div class="${CARD} p-4 space-y-2">
-            <div class="flex justify-between text-sm"><span><span class="font-black dark:text-white" lang="nl">${esc(t)}</span><span class="fr-i text-xs text-slate-500" lang="fr">${esc(THEME_FR[t] || '')}</span></span><span class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">${sm.mastered}/${sm.total} gekend</span></div>
+            <div class="flex justify-between text-sm"><span><span class="font-black dark:text-white" lang="nl">${esc(t)}</span><span class="fr-i text-xs text-slate-500" lang="fr">${esc(THEME_FR[t] || '')}</span></span><span class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">${sm.mastered}/${sm.total} geleerd</span></div>
             ${bar(sm.mastered, sm.total)}
             <div class="flex flex-wrap gap-1.5 pt-1">${sets.map((st, k) => { const m = summary(st.ids); return `<a href="#/mots/serie/${st.i}" class="${CHIP} ${m.mastered === st.ids.length ? 'bg-emerald-600 text-white' : m.seen ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-700 dark:text-white'}">Serie ${k + 1} · ${st.ids.length} woorden${m.mastered === st.ids.length ? ' ✓' : ''}</a>`; }).join('')}</div>
           </div>`;
@@ -73,7 +73,7 @@ function renderSet(el, setIdx) {
     <div class="max-w-md mx-auto space-y-4 animate-pop">
       <a href="#/mots" class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 py-1"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Thema’s</a>
       <h1 class="text-xl font-black text-delftBlue dark:text-white">${esc(set.label)}</h1>
-      <div class="space-y-1.5"><div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400"><span>Kaart ${idx + 1} / ${set.ids.length}</span><span>${s.mastered} / ${set.ids.length} gekend</span></div>${bar(s.mastered, set.ids.length)}</div>
+      <div class="space-y-1.5"><div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400"><span>Kaart ${idx + 1} / ${set.ids.length}</span><span>${s.mastered} / ${set.ids.length} geleerd</span></div>${bar(s.mastered, set.ids.length)}</div>
       <div data-cardhost></div>
       <div class="flex justify-between">
         <button type="button" data-prev class="${BTN_SECONDARY}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Vorige</button>

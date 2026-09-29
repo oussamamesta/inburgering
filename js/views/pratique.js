@@ -13,7 +13,7 @@ import { scene } from '../core/scenes.js';
 const statusIcon = (id) => {
   const it = get(id);
   if (!it) return '<span class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600" aria-label="Nieuw"></span>';
-  if (it.box >= MASTERED_BOX) return '<span class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center" aria-label="Gekend">✓</span>';
+  if (it.box >= MASTERED_BOX) return '<span class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center" aria-label="Geleerd">✓</span>';
   return `<span class="w-6 h-6 rounded-full ${it.lastOk ? 'bg-amber-400' : 'bg-red-400'} text-white text-xs flex items-center justify-center" aria-label="Bezig">•</span>`;
 };
 
@@ -51,7 +51,7 @@ function storyList(el) {
   el.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-4 animate-pop">
       ${pageHero('verhalen', 'Verhalen', tr('Korte verhalen uit het dagelijks leven in Nederland, op A1-niveau. Lees, luister en beantwoord drie vragen.', 'De courtes histoires illustrées de la vie quotidienne, niveau A1. Lisez, écoutez, puis répondez à trois questions. Ce n’est pas un format d’examen : c’est pour lire avec plaisir et fixer le vocabulaire.'),
-        [`${STORIES.length} verhalen`, `${all.mastered}/${all.total} vragen gekend`], 'Histoires illustrées')}
+        [`${STORIES.length} verhalen`, `${all.mastered}/${all.total} vragen geleerd`], 'Histoires illustrées')}
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         ${STORIES.map((s, i) => {
           const sm = summary(STORY_QUESTIONS.filter((q) => q.story === s.id).map((q) => q.id));
@@ -102,7 +102,7 @@ function storyReader(el, i, sub) {
         </div>
       </section>
       <div class="bg-gradient-to-r from-teal-700 to-teal-600 text-white rounded-3xl p-5 flex items-center justify-between gap-3 shadow-lg">
-        <div><div class="font-black text-lg">Heb je het begrepen?</div><div class="text-sm text-teal-50">3 vragen${summary(qIds).mastered === qIds.length ? ' · ✓ al gekend' : ''}</div></div>
+        <div><div class="font-black text-lg">Heb je het begrepen?</div><div class="text-sm text-teal-50">3 vragen${summary(qIds).mastered === qIds.length ? ' · ✓ al geleerd' : ''}</div></div>
         <a href="#/lecture/verhalen/${i}/vragen" class="${BTN_PRIMARY} !bg-white !text-teal-800">Vragen <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
       </div>
       <div class="flex justify-between gap-2">
@@ -141,10 +141,10 @@ function docList(el, params, { key, title, titleFr, sub, list: all, label, iconN
   const s = summary(ids);
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-4 animate-pop">
-      ${pageHero(key, title, sub, [`${list.length} ${key === 'lecture' ? 'teksten' : 'berichten'}`, `${s.mastered}/${s.total} gekend`], titleFr)}
+      ${pageHero(key, title, sub, [`${list.length} ${key === 'lecture' ? 'teksten' : 'berichten'}`, `${s.mastered}/${s.total} geleerd`], titleFr)}
       ${extra}
       <div class="${CARD} p-4 space-y-3">
-        <div class="flex justify-between text-sm font-bold dark:text-white"><span>${s.mastered} / ${s.total} ${tri('gekend', 'maîtrisées')}</span><span>${s.accuracy === null ? '' : s.accuracy + ' % goed'}</span></div>
+        <div class="flex justify-between text-sm font-bold dark:text-white"><span>${s.mastered} / ${s.total} ${tri('geleerd', 'maîtrisées')}</span><span>${s.accuracy === null ? '' : s.accuracy + ' % goed'}</span></div>
         ${bar(s.mastered, s.total, key === 'lecture' ? 'bg-teal-500' : 'bg-blue-500')}
         <a href="#/${key}/tout" class="${BTN_PRIMARY}"><i class="fa-solid fa-play" aria-hidden="true"></i> ${tri('Alles na elkaar', 'Tout à la suite')}</a>
       </div>
@@ -181,7 +181,7 @@ export const renderLecture = (el, params) => docList(el, params, {
         <span class="${BTN_PRIMARY} !bg-white !text-delftBlue">Start</span>
       </div>
     </a>
-    ${rowLink('#/lecture/mots', 'cards', 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300', 'Opwarmen: woorden herkennen', 'Échauffement : reconnaître des mots', tri(`Hoor een woord en kies het goede woord. ${w.mastered}/${w.total} gekend.`, 'utile pour le vocabulaire (retiré de l’examen en mai 2023)'), bar(w.mastered, w.total, 'bg-teal-500'))}
+    ${rowLink('#/lecture/mots', 'cards', 'bg-teal-100 dark:bg-teal-950/50 text-teal-700 dark:text-teal-300', 'Opwarmen: woorden herkennen', 'Échauffement : reconnaître des mots', tri(`Hoor een woord en kies het goede woord. ${w.mastered}/${w.total} geleerd.`, 'utile pour le vocabulaire (retiré de l’examen en mai 2023)'), bar(w.mastered, w.total, 'bg-teal-500'))}
     <h2 class="text-sm font-black text-slate-700 dark:text-slate-200 pt-2">${tri(`Examenteksten (${new Set(READING.map((d) => d.textId)).size})`, 'textes de type examen')}</h2>`;
   })(),
 });

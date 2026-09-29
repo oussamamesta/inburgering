@@ -195,7 +195,7 @@ function weeklyReport() {
     <h2 class="font-black dark:text-white flex items-center gap-2">${icon('chart', 'w-5 h-5')} Deze week <span class="text-xs font-bold text-slate-500">(laatste 7 dagen)</span></h2>
     <div class="grid grid-cols-3 gap-2 text-center">
       <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${now.days} / 7</div><div class="text-xs text-slate-500">dagen geleerd</div></div>
-      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${mastered}</div><div class="text-xs text-slate-500">nieuw gekend</div></div>
+      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${mastered}</div><div class="text-xs text-slate-500">nieuw geleerd</div></div>
       <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${aNow} %</div><div class="text-xs text-slate-500">goed${delta !== null ? ` (${delta >= 0 ? '+' : ''}${delta} t.o.v. vorige week)` : ''}</div></div>
     </div>
     ${strongCats.length ? `<div class="text-sm"><p class="font-bold text-emerald-700 dark:text-emerald-400">✓ ${tri('Dit gaat goed', 'points forts')}</p><ul class="text-slate-700 dark:text-slate-300">${strongCats.map((c) => `<li>${esc(catLabel(c.k))}: ${c.a} %</li>`).join('')}</ul></div>` : ''}
@@ -223,12 +223,12 @@ export function renderProgres(el) {
 
   el.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-pop">
-      ${pageHero('progres', 'Voortgang', tr('Iets is „gekend” na 3 goede antwoorden op verschillende dagen.', 'Un élément est « maîtrisé » après 3 bonnes réponses espacées dans le temps.'), [`Niveau ${levelInfo().level} · ${levelInfo().tier.nl}`, `${totalXp()} XP totaal`], 'Mes progrès')}
+      ${pageHero('progres', 'Voortgang', tr('Iets is „geleerd” na 3 goede antwoorden op verschillende dagen.', 'Un élément est « maîtrisé » après 3 bonnes réponses espacées dans le temps.'), [`Niveau ${levelInfo().level} · ${levelInfo().tier.nl}`, `${totalXp()} XP totaal`], 'Mes progrès')}
       ${weeklyReport()}
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <!-- 4 indicateurs -->
         ${stat(streakInfo().count + ' dagen', 'Reeks')}
-        ${stat(`${tot.mastered}/${tot.total}`, 'Gekend')}
+        ${stat(`${tot.mastered}/${tot.total}`, 'Geleerd')}
         ${stat(tot.seen ? Math.round((tot.firstOk / tot.seen) * 100) + ' %' : '—', 'In één keer goed')}
         ${stat(acc7 === null ? '—' : acc7 + ' %', 'Goed (7 dagen)')}
       </div>
@@ -255,7 +255,7 @@ export function renderProgres(el) {
 
       <section class="${CARD} p-5 space-y-3">
         <h2 class="font-black dark:text-white">${tri('Per onderdeel', 'par module')}</h2>
-        ${types.map((t) => { const s = summary(idsOf(t)); return `<div class="space-y-1"><div class="flex justify-between text-sm dark:text-white"><span class="font-bold">${TYPE_LABELS[t]}</span><span class="text-xs text-slate-500 dark:text-slate-400">${s.mastered}/${s.total} gekend · ${s.seen} gezien</span></div>${bar(s.mastered, s.total)}</div>`; }).join('')}
+        ${types.map((t) => { const s = summary(idsOf(t)); return `<div class="space-y-1"><div class="flex justify-between text-sm dark:text-white"><span class="font-bold">${TYPE_LABELS[t]}</span><span class="text-xs text-slate-500 dark:text-slate-400">${s.mastered}/${s.total} geleerd · ${s.seen} gezien</span></div>${bar(s.mastered, s.total)}</div>`; }).join('')}
       </section>
 
       <section class="${CARD} p-5 space-y-3">

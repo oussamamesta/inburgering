@@ -100,10 +100,10 @@ export const STORIES = [
   {
     id: 'huisarts', title: 'Bij de huisarts', fr: 'Chez le médecin', minutes: 3,
     scenes: [
-      [L('Ahmed heeft al drie dagen hoofdpijn en koorts.', 'Ahmed a mal à la tête et de la fièvre depuis trois jours.'), L('Om acht uur belt hij de huisarts.', 'À huit heures, il appelle le médecin.'), L('De assistente zegt: „U kunt om half elf komen.”', 'L’assistante dit : « Vous pouvez venir à dix heures et demie. »')],
+      [L('Ahmed heeft al drie dagen hoofdpijn en koorts.', 'Ahmed a mal à la tête et de la fièvre depuis trois jours.'), L('Om acht uur belt hij zijn werk: „Ik ben ziek.”', 'À huit heures, il appelle son travail : « Je suis malade. »'), L('Daarna belt hij de huisarts. De assistente zegt: „U kunt om half elf komen.”', 'Ensuite, il appelle le médecin. L’assistante dit : « Vous pouvez venir à dix heures et demie. »')],
       [L('Ahmed zit in de wachtkamer.', 'Ahmed est assis dans la salle d’attente.'), L('Hij heeft zijn zorgpas bij zich.', 'Il a sa carte d’assurance santé sur lui.'), L('Na tien minuten roept de dokter zijn naam.', 'Au bout de dix minutes, le médecin appelle son nom.')],
       [L('De huisarts luistert goed.', 'Le médecin écoute bien.'), L('Ze meet zijn temperatuur.', 'Elle prend sa température.'), L('„U heeft griep. Rust goed uit en drink veel water.”', '« Vous avez la grippe. Reposez-vous bien et buvez beaucoup d’eau. »')],
-      [L('Bij de apotheek haalt hij paracetamol.', 'À la pharmacie, il prend du paracétamol.'), L('Hij belt zijn werk: „Ik ben ziek.”', 'Il appelle son travail : « Je suis malade. »'), L('Na een week is hij weer beter.', 'Au bout d’une semaine, il va de nouveau bien.')],
+      [L('Bij de apotheek haalt hij paracetamol.', 'À la pharmacie, il prend du paracétamol.'), L('Hij blijft een paar dagen thuis in bed.', 'Il reste quelques jours au lit à la maison.'), L('Na een week is hij weer beter.', 'Au bout d’une semaine, il va de nouveau bien.')],
     ],
     words: [L('de huisarts', 'le médecin généraliste'), L('de hoofdpijn', 'le mal de tête'), L('de koorts', 'la fièvre'), L('de wachtkamer', 'la salle d’attente'), L('de zorgpas', 'la carte d’assurance santé'), L('de griep', 'la grippe'), L('uitrusten', 'se reposer'), L('de apotheek', 'la pharmacie')],
     qs: [

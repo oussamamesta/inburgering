@@ -23,9 +23,9 @@ export function render(el, params) {
   el.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-pop">
       ${pageHero('societe', 'KNS', tr('Kennis van de Nederlandse Samenleving. De vragen zijn in het Nederlands, net als op het examen. Tik op 🇫🇷 FR of op „Vertaling tonen” als je hulp nodig hebt.', 'Connaissance de la société néerlandaise. Questions en néerlandais comme à l’examen ; touchez FR ou « Vertaling tonen » pour la traduction. Chaque réponse est expliquée en français.'),
-        [`${KNS_QUESTIONS.length} vragen`, `${all.mastered} gekend`, '8 thema’s'], 'Connaissance de la société néerlandaise')}
+        [`${KNS_QUESTIONS.length} vragen`, `${all.mastered} geleerd`, '8 thema’s'], 'Connaissance de la société néerlandaise')}
       <div class="${CARD} p-5 space-y-3">
-        <div class="flex justify-between text-sm font-bold dark:text-white"><span>${tri('Voortgang', 'Progression')}</span><span>${all.mastered} / ${all.total} ${tri('gekend', 'maîtrisées')}</span></div>
+        <div class="flex justify-between text-sm font-bold dark:text-white"><span>${tri('Voortgang', 'Progression')}</span><span>${all.mastered} / ${all.total} ${tri('geleerd', 'maîtrisées')}</span></div>
         ${bar(all.mastered, all.total, 'bg-orange-500')}
         <div class="flex flex-wrap gap-2 pt-1">
           <a href="#/kns/mix" class="${BTN_PRIMARY} !bg-orange-600"><i class="fa-solid fa-shuffle" aria-hidden="true"></i> ${tri('Alle thema’s (10 vragen)', 'Séance mélangée')}</a>
@@ -42,7 +42,7 @@ export function render(el, params) {
               <i class="fa-solid fa-chevron-right text-dutchOrange" aria-hidden="true"></i>
             </div>
             ${bar(s.mastered, s.total, 'bg-orange-500')}
-            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>${s.mastered}/${s.total} gekend · ${s.seen} gezien</span><span>${s.accuracy === null ? '—' : s.accuracy + ' % goed'}</span></div>
+            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400"><span>${s.mastered}/${s.total} geleerd · ${s.seen} gezien</span><span>${s.accuracy === null ? '—' : s.accuracy + ' % goed'}</span></div>
           </a>`;
         }).join('')}
       </div>

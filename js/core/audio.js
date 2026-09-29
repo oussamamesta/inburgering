@@ -100,6 +100,10 @@ function ctx() {
   return audioCtx;
 }
 
+// Pendant un combo, le son « bonne réponse » monte d’un demi-ton à chaque réponse juste.
+let pitchStep = 0;
+export function setPitchStep(n) { pitchStep = n; }
+
 export function playSound(type) {
   if (!store.data.settings.sound) return;
   try {
@@ -111,7 +115,8 @@ export function playSound(type) {
     osc.connect(gain);
     gain.connect(ac.destination);
     const tones = {
-      correct: ['sine', [523.25, 659.25], 0.12, 0.25],
+      correct: ['sine', [523.25, 659.25].map((f) => f * 2 ** (Math.max(0, pitchStep - 1) / 12)), 0.12, 0.25],
+      levelup: ['triangle', [523.25, 659.25, 783.99, 1046.5], 0.16, 0.9],
       wrong: ['triangle', [240, 190], 0.15, 0.3],
       fanfare: ['triangle', [523.25, 659.25, 783.99], 0.15, 0.6],
     }[type];

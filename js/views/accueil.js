@@ -1,164 +1,170 @@
-// Accueil : l’examen visé, la séance du jour proposée, et l’accès aux modules.
+// Accueil : niveau, objectif du jour, séance du jour, préparation par partie, modules.
 
 import { esc } from '../core/util.js';
-import { CARD, BTN_PRIMARY, bar } from '../core/ui.js';
-import { dueIds, summary, get } from '../core/learner.js';
-import { KNS_CATS, KNS_QUESTIONS, MANUEL_PAGES, VOCAB, idsOf } from '../content/index.js';
+import { CARD, BTN_PRIMARY, THEMES, toast } from '../core/ui.js';
+import { dueIds, summary, activityBetween } from '../core/learner.js';
+import { KNS_QUESTIONS, MANUEL_PAGES, idsOf } from '../content/index.js';
 import { PARTS, readiness, dailyPlan, weekKey } from '../core/plan.js';
-import { activityBetween } from '../core/learner.js';
 import { store } from '../core/store.js';
-import { toast } from '../core/ui.js';
+import { levelInfo, streakInfo, todayXp, dailyGoal } from '../core/game.js';
+import { ring } from '../core/fx.js';
 
-function suggestions() {
-  const out = [];
-  const due = dueIds().length;
-  if (due) out.push({ icon: '🔁', title: `Réviser ${due} élément${due > 1 ? 's' : ''}`, sub: 'Ce que vous risquez d’oublier aujourd’hui, en premier.', href: '#/reviser' });
-
-  const nextPage = MANUEL_PAGES.find((p) => !get(p.id));
-  if (nextPage) out.push({ icon: '📖', title: `Manuel : ${nextPage.title}`, sub: `Chapitre ${nextPage.ci + 1}, page ${nextPage.pi + 1} — lisez puis répondez au mini-quiz.`, href: `#/manuel/${nextPage.ci}/${nextPage.pi}` });
-
-  // Thème de la société le plus faible (au moins 3 questions déjà vues).
-  let weakest = null;
-  for (const cat of Object.keys(KNS_CATS)) {
-    const s = summary(KNS_QUESTIONS.filter((q) => q.cat === cat).map((q) => q.id));
-    if (s.seen >= 3 && s.accuracy !== null && (!weakest || s.accuracy < weakest.acc)) weakest = { cat, acc: s.accuracy };
-  }
-  if (weakest && weakest.acc < 80) out.push({ icon: '🎯', title: `Point faible : ${KNS_CATS[weakest.cat].label}`, sub: `${weakest.acc} % de bonnes réponses. Une séance ciblée de 10 questions.`, href: `#/kns/${weakest.cat}` });
-
-  const newSpeak = idsOf('speak').filter((id) => !get(id)).length;
-  if (newSpeak && out.length < 3) out.push({ icon: '🗣️', title: 'Parler : répondre à des questions', sub: 'Entraînez-vous à voix haute, comme à l’examen.', href: '#/parler/questions' });
-
-  const newWords = VOCAB.filter((w) => !get(w.id)).length;
-  if (newWords) out.push({ icon: '🎴', title: 'Apprendre de nouveaux mots', sub: `${newWords} mots pas encore vus.`, href: '#/mots' });
-
-  const newKns = KNS_QUESTIONS.filter((q) => !get(q.id)).length;
-  if (newKns && out.length < 4) out.push({ icon: '🏛️', title: 'Questions sur la société', sub: `${newKns} questions pas encore vues.`, href: '#/kns/mix' });
-  return out.slice(0, 4);
-}
-
-
-const LEVEL_COLORS = { 'Prêt': 'bg-emerald-500', 'En bonne voie': 'bg-amber-400', 'À travailler': 'bg-red-400' };
-
-function planCard() {
-  const plan = dailyPlan();
-  const dateLabel = store.data.settings.examDate
-    ? new Date(`${store.data.settings.examDate}T00:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
-
-  const readinessRows = Object.entries(PARTS).map(([k, p]) => {
-    const r = readiness(k);
-    return `<a href="${p.href}" class="block space-y-1 touch-active">
-      <div class="flex justify-between text-sm"><span class="font-bold text-slate-800 dark:text-white">${p.icon} ${p.label}</span><span class="text-xs font-bold text-slate-500 dark:text-slate-400">${r.level} · ${r.score} %</span></div>
-      <div class="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"><div class="h-full ${LEVEL_COLORS[r.level]} rounded-full" style="width:${Math.max(3, r.score)}%"></div></div>
-    </a>`;
-  }).join('');
-
-  if (plan.days === null) {
-    return `<section class="${CARD} p-5 space-y-4">
-      <h2 class="text-lg font-black text-delftBlue dark:text-white">📅 Mon plan d’étude</h2>
-      <p class="text-sm text-slate-600 dark:text-slate-300">Indiquez la date de votre examen : l’application répartit tout le contenu sur les jours qui restent et vous propose une séance chaque jour.</p>
-      <form data-date-form class="flex flex-wrap gap-2 items-center">
-        <label for="examDate" class="sr-only">Date de l’examen</label>
-        <input id="examDate" type="date" required min="${new Date().toISOString().slice(0, 10)}" class="p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold">
-        <button type="submit" class="${BTN_PRIMARY}">Enregistrer</button>
-      </form>
-      <p class="text-xs text-slate-500 dark:text-slate-400">Pas encore de date ? Voici quand même la séance du jour, calculée pour un examen dans environ 7 semaines.</p>
-      <a href="#/plan" class="${BTN_PRIMARY} w-full">Commencer la séance du jour (${plan.size} exercices)</a>
-      <div class="space-y-2.5 pt-1"><p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Ma préparation</p>${readinessRows}</div>
-    </section>`;
-  }
-
-  const lines = [];
-  if (plan.due) lines.push(`🔁 ${plan.due} révision${plan.due > 1 ? 's' : ''}`);
-  if (plan.vocab) lines.push(`🎴 ${plan.vocab} nouveaux mots`);
-  if (plan.kns) lines.push(`🏛️ ${plan.kns} questions de société`);
-  if (plan.texts) lines.push(`📄 ${plan.texts} texte${plan.texts > 1 ? 's' : ''} à lire`);
-  if (plan.speak) lines.push(`🗣️ ${plan.speak} exercice${plan.speak > 1 ? 's' : ''} de parole`);
-  const pct = plan.size ? Math.min(100, Math.round((plan.doneToday / plan.size) * 100)) : 100;
-  const next = plan.nextManuel ? MANUEL_PAGES.find((p) => p.id === plan.nextManuel) : null;
-
-  return `<section class="${CARD} p-5 space-y-4">
-    <div class="flex items-start justify-between gap-3">
-      <div><h2 class="text-lg font-black text-delftBlue dark:text-white">📅 ${plan.days > 0 ? `Examen dans ${plan.days} jour${plan.days > 1 ? 's' : ''}` : plan.days === 0 ? 'Examen aujourd’hui : bonne chance !' : 'Date d’examen passée'}</h2>
-      <p class="text-xs text-slate-500 dark:text-slate-400">${esc(dateLabel)} · <a href="#/reglages" class="underline">modifier</a></p></div>
-      <span class="text-3xl font-black text-dutchOrange tabular-nums">${Math.max(0, plan.days)}</span>
-    </div>
-    ${plan.days < 0 ? '<p class="text-sm text-slate-600 dark:text-slate-300">Changez la date dans les Réglages pour recalculer votre plan.</p>' : `
-    <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-      <p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">${plan.finalWeek ? 'Dernière semaine : révisions et examens blancs' : 'Aujourd’hui'}</p>
-      ${lines.length ? `<ul class="text-sm text-slate-700 dark:text-slate-200 space-y-1">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p class="text-sm dark:text-white">Rien de nouveau aujourd’hui : tout est à jour.</p>'}
-      ${next && plan.manuel ? `<a href="#/manuel/${next.ci}/${next.pi}" class="block text-sm font-bold text-delftBlue dark:text-blue-300 underline">📖 Lire aussi : ${esc(next.title)}</a>` : ''}
-      ${plan.mock ? `<a href="${PARTS[plan.mock].examHref}" class="block text-sm font-bold text-delftBlue dark:text-blue-300 underline">🏆 Examen blanc du jour : ${PARTS[plan.mock].label}</a>` : ''}
-      ${plan.size ? `<div class="space-y-1"><div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400"><span>Fait aujourd’hui</span><span>${Math.min(plan.doneToday, plan.size)} / ${plan.size}</span></div>${bar(Math.min(plan.doneToday, plan.size), plan.size, 'bg-dutchOrange')}</div>
-      <a href="#/plan" class="${BTN_PRIMARY} w-full">${pct >= 100 ? 'Séance terminée ✓ Refaire une séance' : pct > 0 ? 'Continuer la séance du jour' : 'Commencer la séance du jour'}</a>` : ''}
-    </div>`}
-    <div class="space-y-2.5"><p class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Ma préparation</p>${readinessRows}</div>
-  </section>`;
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return ['Goedemorgen!', 'Bonjour !'];
+  if (h < 18) return ['Goedemiddag!', 'Bon après-midi !'];
+  return ['Goedenavond!', 'Bonsoir !'];
 }
 
 function reportBanner() {
-  const wk = weekKey();
-  if (store.data.ui.lastReportWeek === wk) return '';
-  const last = activityBetween(13, 7);
-  if (!last.n) return '';
-  return `<a href="#/progres" class="block ${CARD} p-4 border-2 !border-emerald-400 touch-active"><span class="font-black text-emerald-700 dark:text-emerald-300">📊 Votre bilan de la semaine est prêt</span><span class="block text-xs text-slate-500 dark:text-slate-400">Ce que vous avez maîtrisé, vos points faibles et votre objectif pour cette semaine.</span></a>`;
+  if (store.data.ui.lastReportWeek === weekKey()) return '';
+  if (!activityBetween(13, 7).n) return '';
+  return `<a href="#/progres" class="flex items-center gap-3 ${CARD} p-4 border-2 !border-emerald-400 touch-active animate-rise">
+    <span class="text-3xl" aria-hidden="true">📊</span>
+    <span class="flex-1 min-w-0"><span class="block font-black text-emerald-700 dark:text-emerald-300">Votre bilan de la semaine est prêt</span><span class="block text-xs text-slate-500 dark:text-slate-400">Ce que vous avez maîtrisé, vos points faibles et votre objectif.</span></span>
+    <i class="fa-solid fa-chevron-right text-emerald-600" aria-hidden="true"></i>
+  </a>`;
 }
 
-function moduleCard(href, icon, title, ids, accent) {
-  const s = summary(ids);
-  return `<a href="${href}" class="${CARD} p-4 flex flex-col gap-3 touch-active hover:border-orange-300 dark:hover:border-orange-800">
-    <div class="flex items-center justify-between"><span class="w-11 h-11 rounded-2xl ${accent} flex items-center justify-center text-xl" aria-hidden="true">${icon}</span><span class="text-xs font-bold text-slate-500 dark:text-slate-400">${s.mastered} / ${s.total} maîtrisés</span></div>
-    <h3 class="font-black text-slate-900 dark:text-white">${title}</h3>
-    ${bar(s.mastered, s.total)}
+// Carte principale : objectif du jour + série + compte à rebours + bouton « Continuer ».
+function todayCard(plan) {
+  const xp = todayXp();
+  const goal = dailyGoal();
+  const st = streakInfo();
+  const met = xp >= goal;
+  const chips = [];
+  if (plan.due) chips.push(`🔁 ${plan.due} à revoir`);
+  if (plan.vocab) chips.push(`🎴 ${plan.vocab} mots`);
+  if (plan.kns) chips.push(`🏛️ ${plan.kns} questions`);
+  if (plan.texts) chips.push(`📄 ${plan.texts} texte${plan.texts > 1 ? 's' : ''}`);
+  if (plan.speak) chips.push(`🗣️ ${plan.speak} à l’oral`);
+  const done = Math.min(plan.doneToday, plan.size);
+  const countdown = plan.days === null
+    ? '<a href="#date" class="underline font-bold">📅 Ajouter la date de l’examen</a>'
+    : plan.days > 0 ? `📅 Examen dans <b>${plan.days}</b> jour${plan.days > 1 ? 's' : ''}`
+      : plan.days === 0 ? '📅 Examen aujourd’hui : bonne chance !' : '📅 Date d’examen passée · <a href="#/reglages" class="underline">modifier</a>';
+
+  return `<section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-700 to-dutchOrange text-white p-5 shadow-xl space-y-4 animate-rise">
+    <div class="absolute -right-8 -bottom-10 text-[9rem] leading-none opacity-20 select-none" aria-hidden="true">🌷</div>
+    <div class="relative flex items-center gap-4">
+      ${ring((xp / goal) * 100, { size: 108, stroke: 11, color: met ? 'text-emerald-300' : 'text-white', track: 'text-black/20', label: `Objectif du jour : ${xp} sur ${goal} XP`,
+        inner: met ? '<span class="text-3xl" aria-hidden="true">✓</span><span class="text-[11px] font-bold mt-1">atteint</span>' : `<span class="text-2xl font-black tabular-nums">${xp}</span><span class="text-[11px] font-bold mt-1 text-white/90">/ ${goal} XP</span>` })}
+      <div class="min-w-0 space-y-1.5">
+        <p class="text-xs font-black uppercase tracking-wider text-white/90">Objectif du jour</p>
+        <p class="text-lg font-black leading-tight">${met ? 'Bravo, objectif atteint\u00a0!' : xp ? `Encore ${goal - xp} XP` : 'C’est parti !'}</p>
+        <p class="text-sm"><span class="${st.todayMet ? 'animate-flame' : ''}" aria-hidden="true">🔥</span> ${st.count ? `<b>${st.count}</b> jour${st.count > 1 ? 's' : ''} de suite` : 'Commencez une série aujourd’hui'}</p>
+        <p class="text-xs text-white/90">${countdown}</p>
+      </div>
+    </div>
+    ${chips.length ? `<div class="relative flex flex-wrap gap-1.5">${chips.map((c) => `<span class="px-2.5 py-1 rounded-full bg-black/25 text-xs font-bold">${c}</span>`).join('')}</div>` : ''}
+    ${plan.size
+      ? `<a href="#/plan" class="relative flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-white text-orange-700 font-black shadow-md touch-active">
+          <i class="fa-solid fa-play" aria-hidden="true"></i> ${done >= plan.size ? 'Refaire une séance' : done > 0 ? `Continuer (${done}/${plan.size})` : `Commencer la séance du jour`}</a>`
+      : `<a href="#/examen" class="relative flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-white text-orange-700 font-black shadow-md touch-active">🏆 Tout est à jour : un examen blanc ?</a>`}
+    ${st.restUsedThisWeek ? '<p class="relative text-[11px] text-white/90">😴 Jour de repos utilisé cette semaine : votre série est protégée.</p>' : ''}
+  </section>`;
+}
+
+function dateCard(plan) {
+  if (plan.days !== null) return '';
+  return `<section id="date" class="${CARD} p-4 space-y-3">
+    <p class="text-sm font-bold text-slate-800 dark:text-white">📅 Quand passez-vous l’examen ?</p>
+    <p class="text-xs text-slate-500 dark:text-slate-400">L’application répartit tout le contenu sur les jours qui restent.</p>
+    <form data-date-form class="flex flex-wrap gap-2 items-center">
+      <label for="examDate" class="sr-only">Date de l’examen</label>
+      <input id="examDate" type="date" required min="${new Date().toISOString().slice(0, 10)}" class="p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold">
+      <button type="submit" class="${BTN_PRIMARY}">Enregistrer</button>
+    </form>
+  </section>`;
+}
+
+// Trois jauges : Société, Lecture, Parler.
+function readinessCard() {
+  const theme = { kns: 'societe', lecture: 'lecture', parler: 'parler' };
+  return `<section class="${CARD} p-5 space-y-3">
+    <div class="flex justify-between items-baseline"><h2 class="font-black text-slate-900 dark:text-white">Ma préparation</h2><a href="#/examen" class="text-xs font-bold text-dutchOrange">Examens blancs →</a></div>
+    <div class="grid grid-cols-3 gap-2">
+      ${Object.entries(PARTS).map(([k, p]) => {
+        const r = readiness(k);
+        const t = THEMES[theme[k]];
+        return `<a href="${p.href}" class="flex flex-col items-center gap-1.5 text-center rounded-2xl p-2 touch-active">
+          ${ring(r.score, { size: 76, stroke: 8, color: t.ring, label: `${p.label} : ${r.score} %`, inner: `<span class="text-lg" aria-hidden="true">${p.icon}</span><span class="text-xs font-black tabular-nums text-slate-800 dark:text-white">${r.score}%</span>` })}
+          <span class="text-xs font-black text-slate-800 dark:text-white leading-tight">${p.label.replace(' (KNS)', '')}</span>
+          <span class="text-[11px] font-bold ${r.level === 'Prêt' ? 'text-emerald-600 dark:text-emerald-400' : r.level === 'En bonne voie' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}">${r.level}</span>
+        </a>`;
+      }).join('')}
+    </div>
+  </section>`;
+}
+
+function tile(href, themeKey, icon, label, ids, badge = '') {
+  const t = THEMES[themeKey];
+  const s = ids ? summary(ids) : null;
+  const p = s && s.total ? Math.round((s.mastered / s.total) * 100) : null;
+  return `<a href="${href}" class="relative rounded-2xl ${t.soft} border ${t.border} p-3 flex flex-col items-center text-center gap-1.5 touch-active">
+    ${badge ? `<span class="absolute -top-1.5 -right-1.5 min-w-[1.5rem] h-6 px-1.5 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center">${badge}</span>` : ''}
+    <span class="w-11 h-11 rounded-2xl ${t.tint} flex items-center justify-center text-2xl" aria-hidden="true">${icon}</span>
+    <span class="text-sm font-black text-slate-900 dark:text-white leading-tight">${label}</span>
+    ${p !== null ? `<span class="w-full h-1.5 rounded-full bg-white/70 dark:bg-slate-900/60 overflow-hidden"><span class="block h-full ${t.bar} rounded-full" style="width:${Math.max(p, 2)}%"></span></span>` : ''}
   </a>`;
 }
 
 export function render(el) {
-  const sug = suggestions();
+  const plan = dailyPlan();
+  const lv = levelInfo();
+  const [hello, helloFr] = greeting();
+  const due = dueIds().length;
+
   el.innerHTML = `
-    <div class="space-y-6 animate-pop">
-      <section class="bg-gradient-to-br from-delftBlue to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-700 space-y-4">
-        <div class="inline-flex items-center gap-2 bg-orange-500/20 text-orange-200 px-3 py-1 rounded-full text-xs font-black">🎯 Objectif : examen de base à l’étranger (A1)</div>
-        <h1 class="text-2xl sm:text-4xl font-black leading-tight">Préparez l’examen d’intégration A1</h1>
-        <p class="text-sm text-slate-300 max-w-2xl">L’examen se passe sur ordinateur, à l’ambassade ou au consulat. Il comporte trois parties : la connaissance de la société néerlandaise (KNS), la lecture et l’expression orale ; il faut réussir les trois. Toutes les explications sont en français ; tout ce que vous pratiquez est en néerlandais, comme à l’examen.</p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-          <a href="#/kns" class="bg-white/10 rounded-2xl p-3 border border-white/10 touch-active"><div class="font-black">🏛️ Société (KNS)</div><div class="text-xs text-slate-300">Manuel + ${KNS_QUESTIONS.length} questions</div></a>
-          <a href="#/lecture" class="bg-white/10 rounded-2xl p-3 border border-white/10 touch-active"><div class="font-black">📄 Lecture</div><div class="text-xs text-slate-300">Mots et textes du quotidien</div></a>
-          <a href="#/parler" class="bg-white/10 rounded-2xl p-3 border border-white/10 touch-active"><div class="font-black">🗣️ Parler</div><div class="text-xs text-slate-300">Répondre et compléter des phrases</div></a>
+    <div class="max-w-2xl mx-auto space-y-5">
+      <div class="flex items-center justify-between gap-3 animate-rise">
+        <div class="min-w-0">
+          <h1 class="text-2xl font-black text-delftBlue dark:text-white" lang="nl">${hello} <span aria-hidden="true">👋</span></h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400">${helloFr} Prêt pour un peu de néerlandais ?</p>
         </div>
-      </section>
+      </div>
+
+      <a href="#/progres" class="${CARD} p-4 flex items-center gap-3 touch-active animate-rise">
+        <span class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-2xl shrink-0" aria-hidden="true">${lv.tier.icon}</span>
+        <span class="flex-1 min-w-0 space-y-1.5">
+          <span class="flex justify-between items-baseline gap-2"><span class="font-black text-slate-900 dark:text-white">Niveau ${lv.level} · <span lang="nl">${lv.tier.nl}</span></span><span class="text-xs text-slate-500 dark:text-slate-400">${lv.tier.fr}</span></span>
+          <span class="block h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"><span class="block h-full rounded-full bg-gradient-to-r from-amber-400 to-dutchOrange transition-all" style="width:${Math.max(lv.pct, 2)}%"></span></span>
+          <span class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">${lv.xpInLevel} / ${lv.need} XP jusqu’au niveau ${lv.level + 1}</span>
+        </span>
+      </a>
 
       ${reportBanner()}
-      ${planCard()}
+      ${todayCard(plan)}
+      ${plan.nextManuel && plan.manuel ? (() => { const n = MANUEL_PAGES.find((p) => p.id === plan.nextManuel); return n ? `<a href="#/manuel/${n.ci}/${n.pi}" class="flex items-center gap-3 ${CARD} p-3.5 touch-active"><span class="text-2xl" aria-hidden="true">📖</span><span class="flex-1 min-w-0"><span class="block text-xs font-bold text-slate-500 dark:text-slate-400">À lire aujourd’hui</span><span class="block font-black text-slate-900 dark:text-white truncate">${esc(n.title)}</span></span><i class="fa-solid fa-chevron-right text-dutchOrange" aria-hidden="true"></i></a>` : ''; })() : ''}
+      ${plan.mock ? `<a href="${PARTS[plan.mock].examHref}" class="flex items-center gap-3 ${CARD} p-3.5 touch-active"><span class="text-2xl" aria-hidden="true">🏆</span><span class="flex-1 font-black text-slate-900 dark:text-white">Examen blanc du jour : ${PARTS[plan.mock].label}</span><i class="fa-solid fa-chevron-right text-dutchOrange" aria-hidden="true"></i></a>` : ''}
+      ${dateCard(plan)}
+      ${readinessCard()}
 
       <section class="space-y-3">
-        <h2 class="text-lg font-black text-delftBlue dark:text-white">Autres idées pour aujourd’hui</h2>
-        ${sug.length ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${sug.map((s, i) => `
-          <a href="${s.href}" class="${CARD} p-4 flex items-center gap-3 touch-active ${i === 0 ? 'ring-2 ring-dutchOrange' : ''}">
-            <span class="text-2xl" aria-hidden="true">${s.icon}</span>
-            <span class="flex-1 min-w-0"><span class="block font-black text-slate-900 dark:text-white">${esc(s.title)}</span><span class="block text-xs text-slate-500 dark:text-slate-400">${esc(s.sub)}</span></span>
-            <i class="fa-solid fa-chevron-right text-dutchOrange" aria-hidden="true"></i>
-          </a>`).join('')}</div>` : `<div class="${CARD} p-5 text-sm dark:text-white">Tout est à jour. Tentez un examen blanc !</div>`}
-      </section>
-
-      <section class="space-y-3">
-        <h2 class="text-lg font-black text-delftBlue dark:text-white">Modules</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          ${moduleCard('#/manuel', '📖', 'Manuel de la société (en français)', idsOf('manuel'), 'bg-orange-100 dark:bg-orange-950/50')}
-          ${moduleCard('#/kns', '🏛️', `Société : ${KNS_QUESTIONS.length} questions`, idsOf('kns'), 'bg-orange-100 dark:bg-orange-950/50')}
-          ${moduleCard('#/parler', '🗣️', 'Parler', idsOf('speak'), 'bg-blue-100 dark:bg-blue-950/50')}
-          ${moduleCard('#/mots', '🎴', 'Mots (cartes)', idsOf('vocab'), 'bg-emerald-100 dark:bg-emerald-950/50')}
-          ${moduleCard('#/grammaire', '✍️', 'Phrases & grammaire', [...idsOf('puzzle'), ...idsOf('grammar')], 'bg-purple-100 dark:bg-purple-950/50')}
-          ${moduleCard('#/lecture', '📄', 'Lecture', idsOf('reading'), 'bg-teal-100 dark:bg-teal-950/50')}
-          ${moduleCard('#/ecoute', '🎧', 'Écoute', idsOf('listening'), 'bg-blue-100 dark:bg-blue-950/50')}
+        <h2 class="font-black text-slate-900 dark:text-white">Tout pratiquer</h2>
+        <div class="grid grid-cols-3 gap-2.5">
+          ${tile('#/manuel', 'societe', '📖', 'Manuel', idsOf('manuel'))}
+          ${tile('#/kns', 'societe', '🏛️', 'Société', idsOf('kns'))}
+          ${tile('#/parler', 'parler', '🗣️', 'Parler', idsOf('speak'))}
+          ${tile('#/lecture', 'lecture', '📄', 'Lecture', idsOf('reading'))}
+          ${tile('#/mots', 'mots', '🎴', 'Mots', idsOf('vocab'))}
+          ${tile('#/grammaire', 'grammaire', '✍️', 'Grammaire', [...idsOf('puzzle'), ...idsOf('grammar')])}
+          ${tile('#/ecoute', 'ecoute', '🎧', 'Écoute', idsOf('listening'))}
+          ${tile('#/reviser', 'reviser', '🔁', 'Réviser', null, due ? String(Math.min(due, 99)) : '')}
+          ${tile('#/examen', 'examen', '🏆', 'Examens', null)}
         </div>
-        <a href="#/examen" class="block bg-gradient-to-r from-amber-500 to-orange-500 text-white p-5 rounded-3xl shadow-lg touch-active">
-          <div class="flex items-center justify-between gap-3">
-            <div><div class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-black w-fit mb-1">🏆 Examens blancs</div><div class="text-lg font-black">Société · Lecture · Parler</div><div class="text-xs text-white/85">Chronométrés, au format de l’examen</div></div>
-            <span class="${BTN_PRIMARY} !bg-slate-900">Choisir</span>
-          </div>
-        </a>
       </section>
+
+      <details class="${CARD} p-4 text-sm text-slate-700 dark:text-slate-300">
+        <summary class="font-black text-slate-900 dark:text-white cursor-pointer">ℹ️ À propos de l’examen de base (A1)</summary>
+        <div class="space-y-2 pt-3">
+          <p>L’examen se passe sur ordinateur, à l’ambassade ou au consulat. Il comporte trois parties, et il faut réussir les trois :</p>
+          <p>🏛️ <b>Société (KNS)</b> : questions sur la vie aux Pays-Bas. L’application en propose ${KNS_QUESTIONS.length}, avec un manuel en français.<br>📄 <b>Lecture</b> : 9 textes courts du quotidien.<br>🗣️ <b>Parler</b> : répondre à des questions et compléter des phrases.</p>
+          <p>Toutes les explications sont en français ; tout ce que vous pratiquez est en néerlandais, comme à l’examen.</p>
+        </div>
+      </details>
     </div>`;
+
   el.querySelector('[data-date-form]')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const v = el.querySelector('#examDate').value;
@@ -167,5 +173,10 @@ export function render(el) {
     store.save();
     toast('Date enregistrée : votre plan est prêt.');
     render(el);
+  });
+  el.querySelector('a[href="#date"]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    el.querySelector('#date')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.querySelector('#examDate')?.focus({ preventScroll: true });
   });
 }

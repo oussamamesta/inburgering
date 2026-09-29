@@ -1,7 +1,7 @@
 // Grammaire, lecture et écoute : listes d’exercices + séances.
 
 import { esc, shuffle } from '../core/util.js';
-import { CARD, BTN_PRIMARY, bar, pageTitle, backLink } from '../core/ui.js';
+import { CARD, BTN_PRIMARY, bar, pageTitle, pageHero, backLink } from '../core/ui.js';
 import { summary, get, pick, MASTERED_BOX } from '../core/learner.js';
 import { session } from '../core/engine.js';
 import { store } from '../core/store.js';
@@ -27,7 +27,7 @@ export function renderGrammaire(el, params) {
   const sq = summary(GRAMMAR_Q.map((q) => q.id));
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Phrases & grammaire', 'L’ordre des mots est la difficulté n°1 pour les francophones. Chaque correction explique la règle en français.')}
+      ${pageHero('grammaire', 'Phrases & grammaire', 'L’ordre des mots est la difficulté n°1 pour les francophones. Chaque correction explique la règle en français.')}
       <a href="#/grammaire/phrases" class="${CARD} p-5 flex items-center gap-4 touch-active">
         <span class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center text-2xl" aria-hidden="true">🧩</span>
         <span class="flex-1 space-y-1.5"><span class="block font-black dark:text-white">Construire des phrases</span><span class="block text-xs text-slate-500 dark:text-slate-400">Remettez les mots dans l’ordre. Plusieurs ordres corrects sont acceptés.</span>${bar(sp.mastered, sp.total, 'bg-purple-500')}</span>
@@ -66,7 +66,7 @@ function docList(el, params, { key, title, sub, list: all, label, icon, extra = 
   const s = summary(ids);
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-4 animate-pop">
-      ${pageTitle(title, sub)}
+      ${pageHero(key, title, sub, [`${list.length} ${key === 'lecture' ? 'textes' : 'messages'}`, `${s.mastered}/${s.total} maîtrisés`])}
       ${extra}
       <div class="${CARD} p-4 space-y-3">
         <div class="flex justify-between text-sm font-bold dark:text-white"><span>${s.mastered} / ${s.total} maîtrisés</span><span>${s.accuracy === null ? '' : s.accuracy + ' % justes'}</span></div>

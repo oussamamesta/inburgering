@@ -1,7 +1,7 @@
 // Société néerlandaise (KNS) : séances par thème ou mélangées.
 
 import { esc, shuffle } from '../core/util.js';
-import { CARD, BTN_PRIMARY, bar, pageTitle, backLink } from '../core/ui.js';
+import { CARD, BTN_PRIMARY, bar, pageTitle, pageHero, backLink } from '../core/ui.js';
 import { summary, pick } from '../core/learner.js';
 import { session } from '../core/engine.js';
 import { KNS_CATS, KNS_QUESTIONS } from '../content/index.js';
@@ -20,7 +20,7 @@ export function render(el, params) {
   const all = summary(idsFor('mix'));
   el.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-pop">
-      ${pageTitle('Connaissance de la société (KNS)', `${KNS_QUESTIONS.length} questions réparties dans les thèmes de l’examen. Les questions sont en néerlandais, comme à l’examen ; touchez « Voir la traduction » si besoin. Chaque réponse est expliquée en français.`)}
+      ${pageHero('societe', 'Société néerlandaise', 'Les questions sont en néerlandais, comme à l’examen ; touchez « Voir la traduction » si besoin. Chaque réponse est expliquée en français.', [`${KNS_QUESTIONS.length} questions`, `${all.mastered} maîtrisées`, '8 thèmes'])}
       <div class="${CARD} p-5 space-y-3">
         <div class="flex justify-between text-sm font-bold dark:text-white"><span>Progression globale</span><span>${all.mastered} / ${all.total} maîtrisées</span></div>
         ${bar(all.mastered, all.total)}

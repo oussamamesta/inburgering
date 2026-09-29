@@ -1,7 +1,7 @@
 // Parler (Spreken) : les deux parties de l’examen + entraînement à la prononciation.
 
 import { shuffle, esc, $, $$, onLeave } from '../core/util.js';
-import { CARD, BTN_PRIMARY, BTN_SECONDARY, bar, pageTitle, backLink, audioBtn, ask } from '../core/ui.js';
+import { CARD, BTN_PRIMARY, BTN_SECONDARY, bar, pageTitle, pageHero, backLink, audioBtn, ask } from '../core/ui.js';
 import { summary, pick, record } from '../core/learner.js';
 import { session } from '../core/engine.js';
 import { canRecord, canRecognize, startRecording, micErrorText } from '../core/micro.js';
@@ -33,7 +33,7 @@ export function render(el, params) {
 
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Parler', 'À l’examen, vous parlez dans un micro avec un casque, sans examinateur en face. Vos réponses sont enregistrées puis notées par des personnes.')}
+      ${pageHero('parler', 'Parler', 'À l’examen, vous parlez dans un micro avec un casque, sans examinateur en face. Vos réponses sont enregistrées puis notées par des personnes.', ['Partie 1 : questions', 'Partie 2 : phrases'])}
       <div class="${CARD} p-5 space-y-2 text-sm text-slate-700 dark:text-slate-300">
         <h2 class="font-black text-slate-900 dark:text-white">Déroulé de l’épreuve</h2>
         <p><b>Partie 1 :</b> une dizaine de questions simples sur vous-même. Répondez par une phrase complète, en reprenant le verbe de la question.</p>
@@ -75,7 +75,7 @@ function speakExam(el) {
   const intro = () => {
     el.innerHTML = `
       <div class="max-w-xl mx-auto space-y-4 animate-pop">
-        ${pageTitle('Examen blanc : Parler')}
+        ${pageHero('parler', 'Examen blanc : Parler', '', ['10 questions + 12 phrases', '60 s par réponse'])}
         <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
           <p>• <b>Partie 1 :</b> 10 questions sur la vie de tous les jours. <b>Partie 2 :</b> 12 phrases à compléter, souvent avec une image.</p>
           <p>• Chaque question est lue <b>une seule fois</b>, sans le texte. Ensuite vous avez <b>60 secondes au maximum</b> pour répondre à voix haute. Une réponse courte et complète suffit.</p>

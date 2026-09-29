@@ -1,7 +1,7 @@
 // Service worker : garde une copie de l’application pour l’utiliser sans connexion.
 // Pensez à changer VERSION à chaque mise à jour (voir README).
 
-const VERSION = 'v1.2.1';
+const VERSION = 'v1.3.0';
 const CACHE = `inburgering-${VERSION}`;
 
 const FILES = [
@@ -43,6 +43,8 @@ const FILES = [
   './js/content/pics.js',
   './js/content/vocab_plus.js',
   './js/core/plan.js',
+  './js/core/game.js',
+  './js/core/fx.js',
 ];
 
 self.addEventListener('install', (event) => {

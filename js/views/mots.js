@@ -1,12 +1,12 @@
 // Mots : thèmes, cartes, exercices (de/het, écrire, dictée) et dictionnaire.
 
 import { esc, shuffle } from '../core/util.js';
-import { CARD, CHIP, BTN_SECONDARY, audioBtn, bar, pageTitle } from '../core/ui.js';
+import { CARD, CHIP, BTN_SECONDARY, audioBtn, bar, pageTitle, pageHero } from '../core/ui.js';
 import { summary, get, pick, MASTERED_BOX } from '../core/learner.js';
 import { renderItem, session } from '../core/engine.js';
 import { store } from '../core/store.js';
 import { VOCAB } from '../content/index.js';
-import { FLASH_SETS, THEMES, POS_LABELS } from '../content/vocab.js';
+import { FLASH_SETS, THEMES as THEMES_LIST, POS_LABELS } from '../content/vocab.js';
 
 const byId = new Map(VOCAB.map((w) => [w.id, w]));
 
@@ -32,7 +32,7 @@ export function renderCards(el, params = []) {
   const all = summary(VOCAB.map((w) => w.id));
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-5 animate-pop">
-      ${pageTitle('Mots', `${VOCAB.length} mots du niveau A1, par thème. Commencez par les cartes ; les exercices reprennent ensuite les mots que vous avez vus.`)}
+      ${pageHero('mots', 'Mots', 'Commencez par les cartes ; les exercices reprennent ensuite les mots que vous avez vus.', [`${VOCAB.length} mots A1`, `${all.mastered} maîtrisés`, `${THEMES_LIST.length} thèmes`])}
       <div class="${CARD} p-4 space-y-2">
         <div class="flex justify-between text-sm font-bold dark:text-white"><span>Mots maîtrisés</span><span>${all.mastered} / ${all.total} · ${all.seen} vus</span></div>
         ${bar(all.mastered, all.total)}
@@ -44,7 +44,7 @@ export function renderCards(el, params = []) {
       </div>
       <div class="flex justify-between items-center"><h2 class="font-black text-delftBlue dark:text-white">Cartes par thème</h2><a href="#/dico" class="text-sm font-bold text-dutchOrange">📚 Dictionnaire</a></div>
       <div class="space-y-3">
-        ${THEMES.map((t) => {
+        ${THEMES_LIST.map((t) => {
           const sets = FLASH_SETS.map((st, i) => ({ ...st, i })).filter((st) => st.theme === t);
           const ids = sets.flatMap((st) => st.ids);
           const sm = summary(ids);
@@ -86,7 +86,7 @@ function renderSet(el, setIdx) {
 export function renderDico(el) {
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Dictionnaire', `${VOCAB.length} mots A1 avec article, pluriel, exemple et audio.`)}
+      ${pageHero('mots', 'Dictionnaire', 'Article, pluriel, exemple et audio pour chaque mot.', [`${VOCAB.length} mots`])}
       <label class="block"><span class="sr-only">Rechercher un mot</span>
         <input type="search" data-q placeholder="🔍 Chercher en néerlandais ou en français…" class="w-full p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold shadow-sm dark:text-white" autocomplete="off"></label>
       <p data-count class="text-xs text-slate-500"></p>

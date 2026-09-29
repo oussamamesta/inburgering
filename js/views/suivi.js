@@ -1,9 +1,10 @@
 // Examen blanc, révisions et progrès.
 
 import { esc, shuffle, pct } from '../core/util.js';
-import { CARD, BTN_PRIMARY, BTN_SECONDARY, bar, pageTitle, backLink } from '../core/ui.js';
+import { CARD, BTN_PRIMARY, BTN_SECONDARY, bar, pageTitle, pageHero, backLink } from '../core/ui.js';
 import { dueIds, summary, weakest, lastDays, accuracyLastDays, currentStreak, get, MASTERED_BOX, INTERVALS, activityBetween, masteredSince } from '../core/learner.js';
 import { weekKey, catLabel, catLink, PARTS, readiness } from '../core/plan.js';
+import { levelInfo, totalXp, streakInfo } from '../core/game.js';
 import { session, describe } from '../core/engine.js';
 import { store } from '../core/store.js';
 import { KNS_CATS, KNS_QUESTIONS, TYPE_LABELS, lookup, idsOf } from '../content/index.js';
@@ -65,7 +66,7 @@ export function renderExamen(el, params) {
   if (p === 'societe') {
     el.innerHTML = `
       <div class="max-w-xl mx-auto space-y-4 animate-pop">
-        ${pageTitle('Examen blanc — Société')}
+        ${pageHero('societe', 'Examen blanc : Société', '', ['30 questions', '2 réponses', '30 min', 'seuil 21'])}
         <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
           <ul class="space-y-1.5">
             <li>• Comme à l’examen officiel : <b>${EXAM_SIZE} questions</b>, <b>deux réponses possibles</b> à chaque fois, et il faut <b>${PASS_MARK} bonnes réponses</b> pour réussir.</li>
@@ -85,7 +86,7 @@ export function renderExamen(el, params) {
   if (p === 'lecture') {
     el.innerHTML = `
       <div class="max-w-xl mx-auto space-y-4 animate-pop">
-        ${pageTitle('Examen blanc — Lecture')}
+        ${pageHero('lecture', 'Examen blanc : Lecture', '', ['9 textes', '18 questions', '35 min'])}
         <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
           <ul class="space-y-1.5">
             <li>• Comme à l’examen depuis mai 2023 : <b>9 textes courts</b> du quotidien (annonces, messages, tableaux, lettres, petites histoires).</li>
@@ -121,7 +122,7 @@ export function renderExamen(el, params) {
   };
   el.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Examens blancs', 'Il faut réussir les trois parties. Faites chaque examen blanc dans les conditions réelles : au calme, d’une traite, sans aide.')}
+      ${pageHero('examen', 'Examens blancs', 'Il faut réussir les trois parties. Faites chaque examen blanc dans les conditions réelles : au calme, d’une traite, sans aide.')}
       ${card('#/examen/societe', '🏛️', 'Société (KNS)', '30 questions · 2 réponses · 30 min · seuil 21', 'kns', 'from-amber-500 to-orange-600')}
       ${card('#/examen/lecture', '📄', 'Lecture', '9 textes · 18 questions · 3 réponses · 35 min', 'lecture', 'from-teal-600 to-delftBlue')}
       ${card('#/parler/examen', '🗣️', 'Parler', '10 questions + 12 phrases · 60 s par réponse', 'parler', 'from-blue-600 to-delftBlue')}
@@ -150,7 +151,7 @@ export function renderReviser(el, params) {
 
   el.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Réviser', 'Chaque élément revient juste avant que vous risquiez de l’oublier : après 1 jour, puis 2, 4, 8, 16 et 32 jours. Une erreur le fait revenir rapidement.')}
+      ${pageHero('reviser', 'Réviser', 'Chaque élément revient juste avant que vous risquiez de l’oublier : après 1 jour, puis 2, 4, 8, 16 et 32 jours. Une erreur le fait revenir rapidement.')}
       <div class="${CARD} p-6 text-center space-y-4">
         ${due.length ? `
           <p class="text-5xl font-black text-dutchOrange">${due.length}</p>
@@ -219,11 +220,11 @@ export function renderProgres(el) {
 
   el.innerHTML = `
     <div class="max-w-3xl mx-auto space-y-5 animate-pop">
-      ${pageTitle('Mes progrès', 'Un élément est « maîtrisé » après 3 bonnes réponses espacées dans le temps.')}
+      ${pageHero('progres', 'Mes progrès', 'Un élément est « maîtrisé » après 3 bonnes réponses espacées dans le temps.', [`Niveau ${levelInfo().level} · ${levelInfo().tier.nl}`, `${totalXp()} XP au total`])}
       ${weeklyReport()}
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <!-- 4 indicateurs -->
-        ${stat(currentStreak() + ' j', 'Série de jours')}
+        ${stat('🔥 ' + streakInfo().count + ' j', 'Série de jours')}
         ${stat(`${tot.mastered}/${tot.total}`, 'Éléments maîtrisés')}
         ${stat(tot.seen ? Math.round((tot.firstOk / tot.seen) * 100) + ' %' : '—', 'Justes du 1er coup')}
         ${stat(acc7 === null ? '—' : acc7 + ' %', 'Précision (7 jours)')}

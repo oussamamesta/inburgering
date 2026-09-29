@@ -5,7 +5,10 @@ import { esc, shuffle, $, $$, onLeave } from './util.js';
 import { record, get, MASTERED_BOX } from './learner.js';
 import { playSound } from './audio.js';
 import { store } from './store.js';
-import { CARD, BTN_PRIMARY, BTN_SECONDARY, audioBtn, iconSay, bar, ask } from './ui.js';
+import { CARD, BTN_PRIMARY, BTN_SECONDARY, audioBtn, iconSay, bar, ask, THEMES } from './ui.js';
+import { currentCombo, lastGain, setQuiet, totalXp } from './game.js';
+import { confetti, floatText, ring } from './fx.js';
+import { catLabel } from './plan.js';
 import { lookup, KNS_CATS } from '../content/index.js';
 import { knsPicture } from '../content/pics.js';
 import { keywordsFor } from '../content/glossaire.js';
@@ -18,7 +21,7 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 
 const OPT_BASE = 'flex-1 text-left p-3.5 rounded-2xl border-2 font-bold text-sm flex items-start gap-3 transition';
 const OPT_IDLE = `${OPT_BASE} border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/60 dark:text-white touch-active`;
-const OPT_OK = `${OPT_BASE} border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100`;
+const OPT_OK = `${OPT_BASE} border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100 animate-correct`;
 const OPT_BAD = `${OPT_BASE} border-red-500 bg-red-50 text-red-900 dark:bg-red-950/50 dark:text-red-100 animate-shake`;
 const OPT_DIM = `${OPT_BASE} border-slate-200 dark:border-slate-700 opacity-50 dark:text-white`;
 const OPT_PICKED = `${OPT_BASE} border-delftBlue bg-blue-50 text-delftBlue dark:border-blue-400 dark:bg-blue-950/50 dark:text-blue-100`;
@@ -555,26 +558,53 @@ export function describe(id) {
 
 // ── Séance : enchaîne plusieurs éléments, puis affiche un bilan ──
 // cfg : { title, ids, exam, backHash, backLabel, onFinish(results), passMark }
+// Couleur d’une séance selon le type d’exercices.
+const TYPE_THEME = { kns: 'societe', manuel: 'societe', reading: 'lecture', speak: 'parler', vocab: 'mots', dehet: 'mots', typing: 'mots', dictee: 'mots', wordmatch: 'mots', puzzle: 'grammaire', grammar: 'grammaire', listening: 'ecoute' };
+function themeFor(ids, cfg) {
+  if (cfg.theme) return cfg.theme;
+  const kinds = new Set(ids.map((id) => TYPE_THEME[lookup(id)?.type] || 'plan'));
+  return kinds.size === 1 ? [...kinds][0] : 'plan';
+}
+
+// Félicitations en néerlandais (avec la traduction) selon le score.
+function praise(p) {
+  if (p >= 90) return ['Uitstekend!', 'Excellent !', '🏆'];
+  if (p >= 70) return ['Goed gedaan!', 'Bien joué !', '👏'];
+  if (p >= 50) return ['Bijna!', 'Presque !', '💪'];
+  return ['Blijf oefenen!', 'Continuez à vous entraîner !', '📚'];
+}
+
+// ── Séance : enchaîne plusieurs éléments, puis affiche un bilan ──
+// cfg : { title, ids, exam, timeLimit, passMark, passNote, backHash, backLabel, theme, onFinish(results), summaryExtra(results) }
 export function session(host, cfg) {
   const ids = cfg.ids;
   const results = [];
   let idx = 0;
   let timer = null;
+  let bestCombo = 0;
   const start = Date.now();
+  const xpStart = totalXp();
+  const t = THEMES[themeFor(ids, cfg)] || THEMES.plan;
 
   if (!ids.length) {
     host.innerHTML = `<div class="${CARD} p-6 text-center space-y-3"><p class="text-3xl">🎉</p><p class="font-bold dark:text-white">Rien à faire ici pour l’instant.</p><a href="${cfg.backHash || '#/'}" class="${BTN_PRIMARY}">Retour</a></div>`;
     return;
   }
+  setQuiet(!!cfg.exam);
 
   host.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4">
       <div class="flex items-center justify-between gap-2">
-        <a href="${cfg.backHash || '#/'}" data-quit class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 py-1"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Quitter</a>
-        <span class="text-sm font-black text-slate-700 dark:text-slate-200 truncate">${esc(cfg.title)}</span>
-        <span data-timer class="text-xs font-bold text-slate-500 tabular-nums">${cfg.exam ? (cfg.timeLimit ? `⏳ ${Math.floor(cfg.timeLimit / 60)}:00` : '0:00') : ''}</span>
+        <a href="${cfg.backHash || '#/'}" data-quit class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 py-1 shrink-0"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Quitter</a>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${t.tint} ${t.text} text-sm font-black truncate min-w-0"><span aria-hidden="true">${t.icon}</span><span class="truncate">${esc(cfg.title)}</span></span>
+        <span class="shrink-0 min-w-[3.5rem] text-right">${cfg.exam
+          ? `<span data-timer class="text-xs font-bold text-slate-500 tabular-nums">${cfg.timeLimit ? `⏳ ${Math.floor(cfg.timeLimit / 60)}:00` : '0:00'}</span>`
+          : '<span data-combo aria-live="polite"></span>'}</span>
       </div>
-      <div class="space-y-1.5"><div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400"><span data-count></span><span data-score></span></div><div data-bar></div></div>
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden" role="progressbar" aria-label="Progression"><div data-barfill class="h-full ${t.bar} rounded-full transition-all duration-500" style="width:0%"></div></div>
+        <span data-count class="text-xs font-black text-slate-500 dark:text-slate-400 tabular-nums"></span>
+      </div>
       <div data-ex></div>
       <div data-foot class="flex justify-end"></div>
     </div>`;
@@ -601,13 +631,28 @@ export function session(host, cfg) {
       }
       if (cfg.timeLimit && s === 0 && !finished) finish(true);
     }, 1000);
-    onLeave(() => clearInterval(timer));
   }
+  onLeave(() => { clearInterval(timer); setQuiet(false); });
 
   const header = () => {
-    $('[data-count]', host).textContent = `${Math.min(idx + 1, ids.length)} / ${ids.length}`;
-    $('[data-score]', host).textContent = cfg.exam ? '' : `${results.filter((r) => r.ok).length} correcte(s)`;
-    $('[data-bar]', host).innerHTML = bar(results.length, ids.length, 'bg-dutchOrange');
+    const done = results.filter(Boolean).length;
+    const c = $('[data-count]', host);
+    if (c) c.textContent = `${Math.min(idx + 1, ids.length)} / ${ids.length}`;
+    const f = $('[data-barfill]', host);
+    if (f) f.style.width = `${(done / ids.length) * 100}%`;
+  };
+
+  // Combo : « 🔥 ×3 » à partir de 2 bonnes réponses d’affilée ; confettis tous les 5.
+  const showCombo = (ok) => {
+    const el = $('[data-combo]', host);
+    if (!el) return;
+    const n = currentCombo();
+    bestCombo = Math.max(bestCombo, n);
+    if (ok && n >= 2) {
+      el.innerHTML = `<span class="inline-block animate-combo text-sm font-black text-orange-600 dark:text-orange-400 tabular-nums">🔥 ×${n}</span>`;
+      if (n % 5 === 0) confetti({ count: 60, spread: 0.8 });
+    } else el.innerHTML = '';
+    if (ok) floatText(exHost.querySelector('h2, [data-card], p') || exHost, `+${lastGain().gain} XP`);
   };
 
   const next = () => {
@@ -620,12 +665,16 @@ export function session(host, cfg) {
   const show = () => {
     header();
     foot.innerHTML = '';
+    exHost.classList.remove('animate-slide-in');
+    void exHost.offsetWidth; // relance l’animation
+    exHost.classList.add('animate-slide-in');
     renderItem(exHost, ids[idx], { exam: cfg.exam }, (ok, chosen, meta = {}) => {
       results[idx] = { id: ids[idx], ok, chosen };
       header();
-      if (cfg.exam || meta.auto) { setTimeout(next, cfg.exam ? 300 : 150); return; }
+      if (!cfg.exam) showCombo(ok);
+      if (cfg.exam || meta.auto) { setTimeout(next, cfg.exam ? 300 : 350); return; }
       const last = idx === ids.length - 1;
-      foot.innerHTML = `<button type="button" class="${BTN_PRIMARY}">${last ? 'Voir le bilan' : 'Suivant'} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>`;
+      foot.innerHTML = `<button type="button" class="${BTN_PRIMARY} ${t.btn}">${last ? 'Voir le bilan' : 'Suivant'} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>`;
       const b = foot.querySelector('button');
       b.addEventListener('click', next);
       b.focus({ preventScroll: true });
@@ -645,38 +694,68 @@ export function session(host, cfg) {
     const total = ids.length;
     const seconds = Math.round((Date.now() - start) / 1000);
     const passed = cfg.passMark ? good >= cfg.passMark : null;
-    playSound(passed === false ? 'wrong' : 'fanfare');
+    const score = Math.round((good / total) * 100);
+    const xpGained = totalXp() - xpStart;
     cfg.onFinish?.(results, { good, total, seconds, passed });
     const wrong = results.filter((r) => !r.ok);
+    const [nl, fr, icon] = praise(score);
+
+    // Ce qui va bien : groupes (thème, type d’exercice) réussis à 80 % ou plus.
+    const groups = {};
+    for (const r of results) {
+      const cat = lookup(r.id)?.cat;
+      if (!cat) continue;
+      const g = groups[cat] || (groups[cat] = { good: 0, n: 0 });
+      g.n += 1;
+      if (r.ok) g.good += 1;
+    }
+    const wentWell = Object.entries(groups).filter(([, g]) => g.good / g.n >= 0.8).sort((a, b) => b[1].n - a[1].n).slice(0, 4);
 
     host.innerHTML = `
-      <div class="max-w-xl mx-auto space-y-4 animate-pop">
-        <div class="${CARD} p-6 text-center space-y-2">
-          <div class="text-4xl" aria-hidden="true">${passed === false ? '📚' : good === total ? '🏆' : '👏'}</div>
-          <h2 class="text-xl font-black dark:text-white">${esc(cfg.title)} — terminé</h2>
-          <p class="text-3xl font-black ${passed === false ? 'text-red-600' : 'text-emerald-600'}">${good} / ${total}</p>
-          ${cfg.passMark ? `<p class="text-sm font-bold ${passed ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}">${passed ? 'Réussi' : 'Pas encore réussi'} (seuil : ${cfg.passMark} / ${total})</p>` : ''}
-          ${cfg.exam ? `<p class="text-xs text-slate-500">Temps : ${Math.floor(seconds / 60)} min ${seconds % 60} s</p>` : ''}
-          ${timeUp ? `<p class="text-sm font-bold text-red-600">Temps écoulé : ${skipped} question${skipped > 1 ? 's' : ''} sans réponse.</p>` : ''}
-          ${cfg.passNote ? `<p class="text-xs text-slate-500">${cfg.passNote}</p>` : ''}
-          ${cfg.summaryExtra ? cfg.summaryExtra(results) : ''}
+      <div class="max-w-xl mx-auto space-y-4">
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br ${t.hero} text-white p-6 shadow-xl text-center space-y-4 animate-rise">
+          <div class="absolute -right-6 -top-6 text-9xl opacity-20 select-none" aria-hidden="true">${icon}</div>
+          <p class="relative text-xs font-black uppercase tracking-wider text-white/90">${esc(cfg.title)} — terminé</p>
+          <div class="relative flex justify-center">${ring(score, { size: 150, stroke: 14, color: 'text-white', track: 'text-black/20', label: `Score : ${score} %`,
+            inner: `<span class="text-4xl font-black tabular-nums">${score}%</span><span class="text-xs font-bold mt-1 text-white/90">${good} / ${total}</span>` })}</div>
+          <div class="relative"><p class="text-2xl font-black" lang="nl">${nl} ${icon}</p><p class="text-sm text-white/90">${fr}</p></div>
+          <div class="relative flex flex-wrap justify-center gap-2 text-xs font-bold">
+            <span class="px-3 py-1.5 rounded-full bg-black/30">⭐ +${xpGained} XP</span>
+            ${!cfg.exam && bestCombo >= 2 ? `<span class="px-3 py-1.5 rounded-full bg-black/30">🔥 meilleur combo ×${bestCombo}</span>` : ''}
+            ${cfg.exam ? `<span class="px-3 py-1.5 rounded-full bg-black/30">⏱️ ${Math.floor(seconds / 60)} min ${seconds % 60} s</span>` : ''}
+          </div>
+          ${cfg.passMark ? `<p class="relative inline-block px-4 py-2 rounded-2xl bg-white ${passed ? 'text-emerald-700' : 'text-red-700'} text-sm font-black">${passed ? '✓ Réussi' : '✗ Pas encore réussi'} · seuil ${cfg.passMark} / ${total}</p>` : ''}
         </div>
+        ${timeUp || cfg.passNote || cfg.summaryExtra ? `<div class="${CARD} p-5 space-y-2 text-center">
+          ${timeUp ? `<p class="text-sm font-bold text-red-600">Temps écoulé : ${skipped} question${skipped > 1 ? 's' : ''} sans réponse.</p>` : ''}
+          ${cfg.passNote ? `<p class="text-xs text-slate-500 dark:text-slate-400">${cfg.passNote}</p>` : ''}
+          ${cfg.summaryExtra ? cfg.summaryExtra(results) : ''}
+        </div>` : ''}
+        ${good ? `<div class="${CARD} p-5 space-y-2 animate-rise" style="animation-delay:.1s">
+          <h3 class="font-black text-emerald-700 dark:text-emerald-400">✓ Ce qui va bien</h3>
+          ${wentWell.length ? `<ul class="space-y-1.5">${wentWell.map(([cat, g]) => `<li class="flex justify-between gap-3 text-sm text-slate-700 dark:text-slate-200"><span>${esc(catLabel(cat))}</span><span class="font-black text-emerald-700 dark:text-emerald-400 tabular-nums">${g.good}/${g.n}</span></li>`).join('')}</ul>`
+            : `<p class="text-sm text-slate-700 dark:text-slate-200">${good} bonne${good > 1 ? 's' : ''} réponse${good > 1 ? 's' : ''} : chaque réponse juste vous rapproche de l’examen.</p>`}
+        </div>` : ''}
         ${wrong.length ? `
-          <div class="${CARD} p-5 space-y-3">
-            <h3 class="font-black dark:text-white">À retenir (${wrong.length})</h3>
+          <div class="${CARD} p-5 space-y-3 animate-rise" style="animation-delay:.2s">
+            <h3 class="font-black text-red-700 dark:text-red-400">À revoir (${wrong.length})</h3>
             <ul class="space-y-3">
               ${wrong.map((r) => { const d = describe(r.id); return `<li class="text-sm border-l-4 border-red-400 pl-3 space-y-0.5"><p class="font-bold dark:text-white" lang="nl">${esc(d.label)}</p>${d.fr ? `<p class="text-xs italic text-slate-500">${esc(d.fr)}</p>` : ''}<p class="text-emerald-700 dark:text-emerald-400 font-bold">✓ ${esc(d.answer)}</p>${d.expl ? `<p class="text-slate-600 dark:text-slate-300 text-xs">${esc(d.expl)}</p>` : ''}</li>`; }).join('')}
             </ul>
-            <p class="text-xs text-slate-500">Ces éléments reviendront automatiquement dans « Réviser ».</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Ces éléments reviendront automatiquement dans « Réviser ».</p>
           </div>` : ''}
         <div class="flex flex-wrap gap-2 justify-center">
-          ${wrong.length ? '<button type="button" data-retry class="' + BTN_PRIMARY + '"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refaire mes erreurs</button>' : ''}
+          ${wrong.length ? `<button type="button" data-retry class="${BTN_PRIMARY} ${t.btn}"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refaire mes erreurs</button>` : ''}
           <a href="${cfg.backHash || '#/'}" class="${BTN_SECONDARY}">${esc(cfg.backLabel || 'Retour')}</a>
         </div>
       </div>`;
     $('[data-retry]', host)?.addEventListener('click', () =>
-      session(host, { ...cfg, title: 'Mes erreurs', ids: shuffle(wrong.map((r) => r.id)), exam: false, passMark: null, onFinish: null, summaryExtra: null }));
+      session(host, { ...cfg, title: 'Mes erreurs', ids: shuffle(wrong.map((r) => r.id)), exam: false, timeLimit: null, passMark: null, passNote: null, onFinish: null, summaryExtra: null }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    const great = passed ?? score >= 80;
+    playSound(great ? 'fanfare' : passed === false ? 'wrong' : 'fanfare');
+    if (great) setTimeout(() => confetti({ count: 120 }), 350);
+    setQuiet(false); // affiche maintenant un éventuel passage de niveau
   };
 
   show();

@@ -57,11 +57,23 @@
         <a href="#/reglages" data-nav="reglages" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center touch-active" aria-label="Réglages"><i class="fa-solid fa-gear" aria-hidden="true"></i></a>
       </div>
 
-      <div class="bg-slate-900 text-white rounded-2xl p-2 border border-slate-700 shadow-md grid grid-cols-4 gap-1 text-center relative" aria-label="Résumé de votre progression">
-        <a href="#/reviser" id="hudDueTile" class="rounded-xl py-1 ring-dutchOrange touch-active"><div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">À réviser</div><div id="hudDue" class="font-black text-sm text-amber-400">0</div></a>
-        <a href="#/progres" class="rounded-xl py-1"><div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Aujourd’hui</div><div id="hudToday" class="font-black text-sm text-white">0</div></a>
-        <a href="#/progres" class="rounded-xl py-1"><div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Précision 7 j</div><div id="hudAcc" class="font-black text-sm text-emerald-400">—</div></a>
-        <a href="#/progres" class="rounded-xl py-1"><div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Série</div><div id="hudStreak" class="font-black text-sm text-amber-400">0 j</div></a>
+      <div class="bg-slate-900 text-white rounded-2xl px-3 py-2 border border-slate-700 shadow-md flex items-center justify-between gap-1 relative" aria-label="Résumé de votre progression">
+        <a href="#/progres" class="flex items-center gap-1.5 rounded-xl py-0.5 touch-active" aria-label="Série de jours">
+          <span id="hudFlame" class="text-xl" aria-hidden="true">🔥</span>
+          <span><span id="hudStreak" class="block font-black text-sm leading-none tabular-nums">0</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">jours</span></span>
+        </a>
+        <a href="#/" class="flex items-center gap-2 rounded-xl py-0.5 touch-active" aria-label="Objectif du jour">
+          <span id="hudGoalRing" aria-hidden="true"></span>
+          <span><span id="hudGoal" class="block font-black text-sm leading-none tabular-nums">0/100</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">XP</span></span>
+        </a>
+        <a href="#/progres" class="flex items-center gap-1.5 rounded-xl py-0.5 touch-active" aria-label="Niveau">
+          <span id="hudLevelIcon" class="text-xl" aria-hidden="true">🌱</span>
+          <span><span id="hudLevel" class="block font-black text-sm leading-none">Niv. 1</span><span id="hudTier" class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">Starter</span></span>
+        </a>
+        <a href="#/reviser" id="hudDueTile" class="flex items-center gap-1.5 rounded-xl px-1.5 py-0.5 ring-dutchOrange touch-active" aria-label="Éléments à réviser">
+          <span class="text-lg" aria-hidden="true">🔁</span>
+          <span><span id="hudDue" class="block font-black text-sm leading-none text-amber-400 tabular-nums">0</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">révisions</span></span>
+        </a>
         <div id="hudBadge" class="hidden" aria-live="polite"></div>
       </div>
     </div>

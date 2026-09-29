@@ -8,7 +8,7 @@ const KEY = 'inburgering_a1_v1';
 const defaults = () => ({
   version: 1,
   createdAt: Date.now(),
-  settings: { theme: 'system', rate: 0.9, showFr: false, sound: true, voiceURI: null, examDate: null },
+  settings: { theme: 'system', rate: 0.9, showFr: false, sound: true, voiceURI: null, examDate: null, dailyGoal: 100 },
   items: {},        // progrès par élément (voir learner.js)
   days: {},         // activité par jour : { 'AAAA-MM-JJ': { n, c } }
   studyStreak: { last: null, count: 0 },

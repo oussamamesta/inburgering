@@ -1,11 +1,12 @@
 // Réglages : thème, voix, traductions, sons, sauvegarde des progrès.
 
 import { dayKey } from '../core/util.js';
-import { CARD, BTN_PRIMARY, BTN_SECONDARY, pageTitle, toast, ask } from '../core/ui.js';
+import { CARD, BTN_PRIMARY, BTN_SECONDARY, pageTitle, pageHero, toast, ask } from '../core/ui.js';
 import { store } from '../core/store.js';
 import { speak, speechInfo, dutchVoices, isEnhanced } from '../core/audio.js';
 import { esc, onLeave } from '../core/util.js';
 import { applyTheme } from '../core/theme.js';
+import { GOALS } from '../core/game.js';
 
 const seg = (name, value, options) => `
   <div class="grid grid-cols-${options.length} gap-1 bg-slate-100 dark:bg-slate-700 p-1 rounded-2xl" role="radiogroup">
@@ -42,7 +43,7 @@ export function render(el) {
   const sp = speechInfo();
   el.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4 animate-pop">
-      ${pageTitle('Réglages')}
+      ${pageHero('progres', 'Réglages')}
       <section class="${CARD} p-5 space-y-3">
         <h2 class="font-black dark:text-white">Date de mon examen</h2>
         <p class="text-xs text-slate-500 dark:text-slate-400">Elle sert à calculer votre séance du jour et le compte à rebours.</p>
@@ -50,6 +51,14 @@ export function render(el) {
           <label for="examDateSet" class="sr-only">Date de l’examen</label>
           <input id="examDateSet" type="date" data-examdate value="${s.examDate || ''}" class="p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold">
           ${s.examDate ? `<button type="button" data-cleardate class="${BTN_SECONDARY}">Effacer</button>` : ''}
+        </div>
+      </section>
+      <section class="${CARD} p-5 space-y-3">
+        <h2 class="font-black dark:text-white">🎯 Objectif du jour</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Une bonne réponse rapporte 10 XP (15 pendant un combo). Chaque jour où l’objectif est atteint prolonge votre série 🔥 ; un jour de repos par semaine ne la casse pas.</p>
+        <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Objectif du jour">
+          ${GOALS.map((g) => { const on = (s.dailyGoal || 100) === g.xp; return `<button type="button" role="radio" aria-checked="${on}" data-goal="${g.xp}" class="p-3 rounded-2xl border-2 text-center ${on ? 'border-dutchOrange bg-orange-50 dark:bg-orange-950/40' : 'border-slate-200 dark:border-slate-700'}">
+            <span class="block font-black text-sm dark:text-white">${g.label}</span><span class="block text-xs font-bold text-dutchOrange">${g.xp} XP</span><span class="block text-[11px] text-slate-500 dark:text-slate-400">${g.sub}</span></button>`; }).join('')}
         </div>
       </section>
       <section class="${CARD} p-5 space-y-3">
@@ -103,6 +112,7 @@ export function render(el) {
   const redraw = () => { if (location.hash.startsWith('#/reglages')) render(el); };
   el.querySelectorAll('[data-theme]').forEach((b) => b.addEventListener('click', () => { s.theme = b.dataset.theme; store.save(); applyTheme(); redraw(); }));
   el.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', () => { s.rate = Number(b.dataset.rate); store.save(); speak('Dit is de nieuwe snelheid.'); redraw(); }));
+  el.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => { s.dailyGoal = Number(b.dataset.goal); store.save(); toast(`Objectif : ${s.dailyGoal} XP par jour.`); redraw(); }));
   el.querySelector('[data-examdate]').addEventListener('change', (e) => { s.examDate = e.target.value || null; store.save(); toast(s.examDate ? 'Date d’examen enregistrée.' : 'Date effacée.'); redraw(); });
   el.querySelector('[data-cleardate]')?.addEventListener('click', () => { s.examDate = null; store.save(); redraw(); });
   el.querySelector('[data-showfr]').addEventListener('change', (e) => { s.showFr = e.target.checked; store.save(); });

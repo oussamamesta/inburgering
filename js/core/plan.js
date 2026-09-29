@@ -7,12 +7,12 @@ import { store } from './store.js';
 import { get, summary, dueIds } from './learner.js';
 import { dayKey } from './util.js';
 import { idsOf, READING, KNS_CATS } from '../content/index.js';
-import { VOCAB } from '../content/vocab.js';
+import { VOCAB, THEME_NL } from '../content/vocab.js';
 
 export const PARTS = {
-  kns: { label: 'Société (KNS)', icon: '🏛️', href: '#/kns', exam: 'kns', examHref: '#/examen/societe', ids: () => [...idsOf('kns'), ...idsOf('manuel')] },
-  lecture: { label: 'Lecture', icon: '📄', href: '#/lecture', exam: 'lecture', examHref: '#/examen/lecture', ids: () => idsOf('reading') },
-  parler: { label: 'Parler', icon: '🗣️', href: '#/parler', exam: 'parler', examHref: '#/parler/examen', ids: () => idsOf('speak').filter((id) => !id.startsWith('sp-n')) },
+  kns: { label: 'KNS', fr: 'Société', iconName: 'kns', theme: 'societe', icon: '🏛️', href: '#/kns', exam: 'kns', examHref: '#/examen/societe', ids: () => [...idsOf('kns'), ...idsOf('manuel')] },
+  lecture: { label: 'Lezen', fr: 'Lecture', iconName: 'read', theme: 'lecture', icon: '📄', href: '#/lecture', exam: 'lecture', examHref: '#/examen/lecture', ids: () => idsOf('reading') },
+  parler: { label: 'Spreken', fr: 'Parler', iconName: 'mic', theme: 'parler', icon: '🗣️', href: '#/parler', exam: 'parler', examHref: '#/parler/examen', ids: () => idsOf('speak').filter((id) => !id.startsWith('sp-n')) },
 };
 
 export function daysUntilExam() {
@@ -34,8 +34,9 @@ export function readiness(key) {
   const examScore = exams.length ? exams.reduce((a, e) => a + e.good / e.total, 0) / exams.length : null;
   const firstTry = s.seen ? s.firstOk / s.seen : 0;
   const score = Math.round(100 * (0.4 * mastery + 0.2 * coverage + 0.4 * (examScore ?? firstTry * coverage)));
-  const level = score >= 75 ? 'Prêt' : score >= 45 ? 'En bonne voie' : 'À travailler';
-  return { score, level, mastery, coverage, examScore, exams: exams.length };
+  const level = score >= 75 ? 'Klaar' : score >= 45 ? 'Op weg' : 'Oefenen';
+  const levelFr = score >= 75 ? 'prêt' : score >= 45 ? 'en bonne voie' : 'à travailler';
+  return { score, level, levelFr, mastery, coverage, examScore, exams: exams.length };
 }
 
 const unseen = (ids) => ids.filter((id) => !get(id));
@@ -90,12 +91,12 @@ export function weekKey(d = new Date()) {
 }
 
 const CAT_LABELS = {
-  vraag: 'Parler : questions', afmaken: 'Parler : phrases à compléter', nazeggen: 'Parler : répéter', lecture: 'Lecture', ecoute: 'Écoute',
-  grammaire: 'Grammaire', phrases: 'Construire des phrases', 'de-het': 'Mots : de / het', ecrire: 'Mots : écrire', dictee: 'Mots : dictée', 'mots-lecture': 'Mots : reconnaître',
+  vraag: 'Spreken: vragen', afmaken: 'Spreken: zinnen afmaken', nazeggen: 'Spreken: nazeggen', lecture: 'Lezen', ecoute: 'Luisteren', verhaal: 'Lezen: verhalen',
+  grammaire: 'Grammatica', phrases: 'Zinnen maken', 'de-het': 'Woorden: de of het', ecrire: 'Woorden: schrijven', dictee: 'Woorden: dictee', 'mots-lecture': 'Woorden: herkennen',
 };
 const CAT_LINKS = {
   vraag: '#/parler/questions', afmaken: '#/parler/completer', nazeggen: '#/parler/repeter', lecture: '#/lecture', ecoute: '#/ecoute',
-  grammaire: '#/grammaire/questions', phrases: '#/grammaire/phrases', 'de-het': '#/mots/dehet', ecrire: '#/mots/ecrire', dictee: '#/mots/dictee', 'mots-lecture': '#/lecture/mots',
+  verhaal: '#/lecture/verhalen', grammaire: '#/grammaire/questions', phrases: '#/grammaire/phrases', 'de-het': '#/mots/dehet', ecrire: '#/mots/ecrire', dictee: '#/mots/dictee', 'mots-lecture': '#/lecture/mots',
 };
-export const catLabel = (cat) => KNS_CATS[cat] ? `Société : ${KNS_CATS[cat].label}` : CAT_LABELS[cat] || `Mots : ${cat}`;
+export const catLabel = (cat) => KNS_CATS[cat] ? `KNS: ${KNS_CATS[cat].nl}` : CAT_LABELS[cat] || `Woorden: ${THEME_NL[cat] || cat}`;
 export const catLink = (cat) => KNS_CATS[cat] ? `#/kns/${cat}` : CAT_LINKS[cat] || '#/mots';

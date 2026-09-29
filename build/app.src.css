@@ -33,6 +33,15 @@ input, select, textarea { font-size: 16px; }
 .animate-pop { animation: pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .touch-active:active { transform: scale(0.97); opacity: 0.9; }
 
+/* Traductions françaises : cachées par défaut, visibles en mode FR (bouton « FR »). */
+.fr, .fr-i { display: none; }
+html.show-fr .fr { display: block; font-size: 0.8em; font-weight: 500; font-style: italic; opacity: 0.75; line-height: 1.3; }
+html.show-fr .fr-i { display: inline; font-weight: 500; font-style: italic; opacity: 0.75; }
+html.show-fr .fr-i::before { content: " · "; }
+html.show-fr .hide-when-fr { display: none; }
+.only-fr { display: none; }
+html.show-fr .only-fr { display: revert; }
+
 /* Animations de récompense */
 @keyframes ring-fill { from { stroke-dashoffset: var(--ring-from); } }
 .ring-anim { animation: ring-fill 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -62,5 +71,7 @@ input, select, textarea { font-size: 16px; }
   .tab-link.is-active { @apply text-dutchOrange; }
   .sheet-link { @apply flex flex-col gap-0.5 p-3.5 rounded-2xl border text-left touch-active text-slate-900 dark:text-white; }
   .sheet-link small { @apply text-xs text-slate-500 dark:text-slate-400; }
+  .fr-toggle { @apply bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200; }
+  .fr-toggle[aria-pressed="true"] { @apply bg-blue-600 text-white shadow-md; }
   :focus-visible { @apply outline-none ring-2 ring-dutchOrange ring-offset-2 ring-offset-white dark:ring-offset-slate-900; }
 }

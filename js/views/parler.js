@@ -8,49 +8,51 @@ import { canRecord, canRecognize, startRecording, micErrorText } from '../core/m
 import { speak, stopSpeaking, playSound } from '../core/audio.js';
 import { store } from '../core/store.js';
 import { SPEAK_QUESTIONS, SPEAK_COMPLETE, SPEAK_REPEAT } from '../content/index.js';
+import { tr, tri } from '../core/i18n.js';
+import { icon } from '../core/icons.js';
 
 const ids = (list) => list.map((x) => x.id);
 
 function run(el, cfg) {
   el.innerHTML = '<div></div>';
-  session(el.firstElementChild, { backHash: '#/parler', backLabel: 'Retour à Parler', ...cfg });
+  session(el.firstElementChild, { backHash: '#/parler', backLabel: 'Terug naar Spreken', ...cfg });
 }
 
 export function render(el, params) {
   const p = params[0];
-  if (p === 'questions') return run(el, { title: 'Partie 1 : répondre', ids: shuffle(pick(ids(SPEAK_QUESTIONS), 10)) });
-  if (p === 'completer') return run(el, { title: 'Partie 2 : compléter', ids: shuffle(pick(ids(SPEAK_COMPLETE), 12)) });
-  if (p === 'repeter') return run(el, { title: 'Répéter', ids: pick(ids(SPEAK_REPEAT), 10) });
+  if (p === 'questions') return run(el, { title: 'Deel 1: vragen beantwoorden', ids: shuffle(pick(ids(SPEAK_QUESTIONS), 10)) });
+  if (p === 'completer') return run(el, { title: 'Deel 2: zinnen afmaken', ids: shuffle(pick(ids(SPEAK_COMPLETE), 12)) });
+  if (p === 'repeter') return run(el, { title: 'Nazeggen', ids: pick(ids(SPEAK_REPEAT), 10) });
   if (p === 'examen') return speakExam(el);
 
-  const card = (href, icon, title, sub, list) => {
+  const card = (href, iconName, title, fr, sub, list) => {
     const s = summary(ids(list));
     return `<a href="${href}" class="${CARD} p-5 flex items-center gap-4 touch-active">
-      <span class="w-12 h-12 shrink-0 rounded-2xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-2xl" aria-hidden="true">${icon}</span>
-      <span class="flex-1 min-w-0 space-y-1.5"><span class="block font-black dark:text-white">${title}</span><span class="block text-xs text-slate-500 dark:text-slate-400">${sub}</span>${bar(s.mastered, s.total, 'bg-blue-500')}</span>
+      <span class="w-12 h-12 shrink-0 rounded-2xl bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 flex items-center justify-center">${icon(iconName, 'w-7 h-7')}</span>
+      <span class="flex-1 min-w-0 space-y-1.5"><span class="block font-black dark:text-white" lang="nl">${title}</span><span class="fr text-xs text-slate-500 dark:text-slate-400" lang="fr">${fr}</span><span class="block text-xs text-slate-500 dark:text-slate-400">${sub}</span>${bar(s.mastered, s.total, 'bg-blue-500')}</span>
     </a>`;
   };
 
   el.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-4 animate-pop">
-      ${pageHero('parler', 'Parler', 'À l’examen, vous parlez dans un micro avec un casque, sans examinateur en face. Vos réponses sont enregistrées puis notées par des personnes.', ['Partie 1 : questions', 'Partie 2 : phrases'])}
+      ${pageHero('parler', 'Spreken', tr('Op het examen spreek je in een microfoon, met een koptelefoon. Er zit geen examinator tegenover je.', 'À l’examen, vous parlez dans un micro avec un casque, sans examinateur en face. Vos réponses sont enregistrées puis notées par des personnes.'), ['Deel 1: vragen', 'Deel 2: zinnen'], 'Expression orale')}
       <div class="${CARD} p-5 space-y-2 text-sm text-slate-700 dark:text-slate-300">
-        <h2 class="font-black text-slate-900 dark:text-white">Déroulé de l’épreuve</h2>
-        <p><b>Partie 1 :</b> une dizaine de questions simples sur vous-même. Répondez par une phrase complète, en reprenant le verbe de la question.</p>
-        <p><b>Partie 2 :</b> une douzaine de phrases à terminer. Vous entendez une courte phrase, puis le début d’une autre : vous la complétez.</p>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Pour chaque exercice : écoutez, répondez à voix haute, puis comparez avec le modèle et évaluez-vous honnêtement. Ce que vous jugez « à retravailler » reviendra plus souvent.</p>
-        ${canRecord || canRecognize ? '<p class="text-xs text-slate-500 dark:text-slate-400">🎙️ Si votre navigateur l’autorise, vous pouvez aussi vous enregistrer ou faire vérifier votre réponse.</p>' : ''}
+        <h2 class="font-black text-slate-900 dark:text-white">${tri('Zo gaat het examen', 'Déroulé de l’épreuve')}</h2>
+        <p><b>Deel 1:</b> ${tri('ongeveer 10 vragen over jezelf. Antwoord met een hele zin.', 'une dizaine de questions sur vous-même ; phrase complète, en reprenant le verbe de la question.')}</p>
+        <p><b>Deel 2:</b> ${tri('ongeveer 12 zinnen afmaken. Je hoort een zin en het begin van een tweede zin.', 'une douzaine de phrases à terminer : vous entendez une phrase, puis le début d’une autre.')}</p>
+        ${tr('<span class="text-xs text-slate-500 dark:text-slate-400">Luister, antwoord hardop, vergelijk met het voorbeeld en wees eerlijk.</span>', 'Écoutez, répondez à voix haute, comparez avec le modèle et évaluez-vous honnêtement : ce qui est « à retravailler » reviendra plus souvent.')}
+        ${canRecord || canRecognize ? `<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">${icon('mic', 'w-4 h-4')} ${tri('Je kunt jezelf ook opnemen of je antwoord laten controleren.', 'si le navigateur l’autorise')}</p>` : ''}
       </div>
-      ${card('#/parler/questions', '❓', 'Partie 1 : répondre à des questions', `${SPEAK_QUESTIONS.length} questions personnelles avec exemples de réponses.`, SPEAK_QUESTIONS)}
-      ${card('#/parler/completer', '🧩', 'Partie 2 : compléter des phrases', `${SPEAK_COMPLETE.length} phrases du quotidien à terminer.`, SPEAK_COMPLETE)}
-      ${card('#/parler/repeter', '🔁', 'Entraînement : répéter', `${SPEAK_REPEAT.length} phrases pour travailler la prononciation, avec conseils.`, SPEAK_REPEAT)}
+      ${card('#/parler/questions', 'mensen', 'Deel 1: vragen beantwoorden', 'Partie 1 : répondre à des questions', `${SPEAK_QUESTIONS.length} vragen over jezelf, met voorbeeldantwoorden.`, SPEAK_QUESTIONS)}
+      ${card('#/parler/completer', 'pencil', 'Deel 2: zinnen afmaken', 'Partie 2 : compléter des phrases', `${SPEAK_COMPLETE.length} zinnen uit het dagelijks leven.`, SPEAK_COMPLETE)}
+      ${card('#/parler/repeter', 'repeat', 'Nazeggen: uitspraak', 'Entraînement : répéter pour la prononciation', `${SPEAK_REPEAT.length} zinnen met uitspraaktips.`, SPEAK_REPEAT)}
       <a href="#/parler/examen" class="block bg-gradient-to-r from-blue-600 to-delftBlue text-white p-5 rounded-3xl shadow-lg touch-active">
         <div class="flex items-center justify-between gap-3">
-          <div><div class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-black w-fit mb-1">⏳ Examen blanc chronométré</div><div class="text-lg font-black">10 questions + 12 phrases</div></div>
-          <span class="${BTN_PRIMARY} !bg-white !text-delftBlue">Commencer</span>
+          <div><div class="text-xs bg-white/20 px-2 py-0.5 rounded-full font-black w-fit mb-1">⏳ Oefenexamen met tijd</div><div class="text-lg font-black">10 vragen + 12 zinnen</div><div class="fr text-xs text-blue-100" lang="fr">Examen blanc chronométré</div></div>
+          <span class="${BTN_PRIMARY} !bg-white !text-delftBlue">Start</span>
         </div>
       </a>
-      ${backLink('#/', 'Accueil')}
+      ${backLink('#/', 'Start')}
     </div>`;
 }
 
@@ -75,22 +77,22 @@ function speakExam(el) {
   const intro = () => {
     el.innerHTML = `
       <div class="max-w-xl mx-auto space-y-4 animate-pop">
-        ${pageHero('parler', 'Examen blanc : Parler', '', ['10 questions + 12 phrases', '60 s par réponse'])}
+        ${pageHero('parler', 'Oefenexamen Spreken', '', ['10 vragen + 12 zinnen', '60 sec. per antwoord'], 'Examen blanc : expression orale')}
         <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
-          <p>• <b>Partie 1 :</b> 10 questions sur la vie de tous les jours. <b>Partie 2 :</b> 12 phrases à compléter, souvent avec une image.</p>
-          <p>• Chaque question est lue <b>une seule fois</b>, sans le texte. Ensuite vous avez <b>60 secondes au maximum</b> pour répondre à voix haute. Une réponse courte et complète suffit.</p>
-          <p>• À la fin, vous comparez avec les modèles et vous vous notez : 1 point si la réponse est adaptée, 1 point si la prononciation est compréhensible (44 points au total).</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400">La durée de 60 secondes et la notation sur 2 points viennent des guides de préparation ; DUO publie peu de détails. À l’examen, ce sont deux examinateurs qui notent.</p>
-          ${canRecord ? `<label class="flex items-center gap-3 font-bold text-slate-800 dark:text-white pt-1"><input type="checkbox" data-mic class="w-6 h-6 accent-orange-600"> Enregistrer mes réponses pour les réécouter</label>` : ''}
-          <button type="button" data-start class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Commencer (environ 25 minutes)</button>
+          <p>• <b>Deel 1:</b> 10 vragen over het dagelijks leven. <b>Deel 2:</b> 12 zinnen afmaken, vaak met een plaatje.</p>
+          <p>• Je hoort elke vraag <b>één keer</b>, zonder tekst. Daarna heb je <b>maximaal 60 seconden</b>. Een kort en compleet antwoord is genoeg.</p>
+          <p>• Aan het eind vergelijk je met het voorbeeld: 1 punt voor een goed antwoord, 1 punt voor goede uitspraak (44 punten).</p>
+          ${tr('', 'Chaque question est lue une seule fois, sans texte ; 60 secondes maximum pour répondre. À la fin : 1 point si la réponse est adaptée, 1 point si la prononciation est compréhensible. La durée et la notation viennent des guides de préparation ; DUO publie peu de détails. À l’examen, deux examinateurs notent.')}
+          ${canRecord ? `<label class="flex items-center gap-3 font-bold text-slate-800 dark:text-white pt-1"><input type="checkbox" data-mic class="w-6 h-6 accent-orange-600"> ${tri('Neem mijn antwoorden op', 'enregistrer pour réécouter')}</label>` : ''}
+          <button type="button" data-start class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Start (± 25 minuten)</button>
         </div>
-        ${backLink('#/parler', 'Retour à Parler')}
+        ${backLink('#/parler', 'Spreken')}
       </div>`;
     $('[data-start]', el).addEventListener('click', async () => {
       useMic = !!$('[data-mic]', el)?.checked;
       if (useMic) {
         // Vérifie tout de suite l’accès au micro, pour ne pas bloquer pendant l’examen.
-        try { const t = await startRecording(500); t.stop(); await t.done; } catch (err) { useMic = false; await ask(micErrorText(err) + '\n\nL’examen continue sans enregistrement.', 'Continuer'); }
+        try { const t = await startRecording(500); t.stop(); await t.done; } catch (err) { useMic = false; await ask(micErrorText(err) + '\n\nHet examen gaat verder zonder opname.', 'Verder'); }
       }
       show();
     });
@@ -105,27 +107,27 @@ function speakExam(el) {
     el.innerHTML = `
       <div class="max-w-xl mx-auto space-y-4">
         <div class="flex justify-between items-center text-sm font-bold text-slate-600 dark:text-slate-300">
-          <a href="#/parler" data-quit class="inline-flex items-center gap-1.5 text-slate-500"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Quitter</a>
-          <span>${part1 ? `Partie 1 · question ${n} / 10` : `Partie 2 · phrase ${n} / 12`}</span>
+          <a href="#/parler" data-quit class="inline-flex items-center gap-1.5 text-slate-500"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Stoppen</a>
+          <span>${part1 ? `Deel 1 · vraag ${n} / 10` : `Deel 2 · zin ${n} / 12`}</span>
         </div>
         ${bar(idx, items.length, 'bg-blue-600')}
         <div class="${CARD} p-6 space-y-5 text-center">
-          ${it.pic ? `<div class="text-7xl py-4 rounded-2xl bg-sky-50 dark:bg-slate-900/60" role="img" aria-label="Image de la situation">${it.pic}</div>` : ''}
+          ${it.pic ? `<div class="text-7xl py-4 rounded-2xl bg-sky-50 dark:bg-slate-900/60" role="img" aria-label="Plaatje">${it.pic}</div>` : ''}
           <div data-phase class="space-y-2">
-            <p class="text-4xl" aria-hidden="true">🔊</p>
-            <p class="font-black text-lg text-slate-900 dark:text-white">Écoutez…</p>
+            <p class="flex justify-center text-blue-600 dark:text-blue-300 animate-pulse">${icon('headphones', 'w-12 h-12')}</p>
+            <p class="font-black text-lg text-slate-900 dark:text-white">Luister…</p>
           </div>
           <div data-answer class="hidden space-y-3">
-            <p class="font-black text-lg text-blue-700 dark:text-blue-300">🎙️ Répondez maintenant${useMic ? ' (enregistrement)' : ''}</p>
+            <p class="font-black text-lg text-blue-700 dark:text-blue-300">🎙️ Antwoord nu${useMic ? ' (opname)' : ''}</p>
             <div class="h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"><div data-countbar class="h-full bg-blue-600 transition-all duration-1000 ease-linear" style="width:100%"></div></div>
             <p data-count class="text-sm font-bold tabular-nums text-slate-600 dark:text-slate-300">${ANSWER_SECONDS} s</p>
-            <button type="button" data-done class="${BTN_PRIMARY} w-full">Réponse terminée <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+            <button type="button" data-done class="${BTN_PRIMARY} w-full">Klaar met antwoorden <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
           </div>
         </div>
       </div>`;
     $('[data-quit]', el).addEventListener('click', async (e) => {
       e.preventDefault();
-      if (await ask('Quitter l’examen blanc ?', 'Quitter')) { clearTimers(); stopSpeaking(); rec?.stop(); location.hash = '#/parler'; }
+      if (await ask('Wil je stoppen met het oefenexamen?', 'Stoppen', false, 'Quitter l’examen blanc ?')) { clearTimers(); stopSpeaking(); rec?.stop(); location.hash = '#/parler'; }
     });
 
     let answering = false;
@@ -168,7 +170,7 @@ function speakExam(el) {
     playSound('fanfare');
     el.innerHTML = `
       <div class="max-w-xl mx-auto space-y-4 animate-pop">
-        ${pageTitle('Correction de l’examen blanc', 'Réécoutez vos réponses (si enregistrées), comparez avec le modèle, et cochez honnêtement.')}
+        ${pageTitle('Nakijken', tri('Luister naar je antwoorden, vergelijk met het voorbeeld en vink eerlijk aan.', 'Réécoutez vos réponses, comparez avec le modèle, cochez honnêtement.'))}
         <ol class="space-y-3">
           ${items.map((it, i) => {
             const q = it.kind === 'vraag' ? it.q : `${it.context} ${it.start}`;
@@ -177,16 +179,16 @@ function speakExam(el) {
             return `<li class="${CARD} p-4 space-y-2">
               <div class="flex items-start gap-2"><span class="text-xs font-black text-slate-400 pt-1">${i + 1}</span><div class="min-w-0 flex-1">
                 ${it.pic ? `<span class="text-2xl" aria-hidden="true">${it.pic}</span>` : ''}
-                <p class="font-bold dark:text-white" lang="nl">${esc(q)}</p><p class="text-xs italic text-slate-500">${esc(fr)}</p></div></div>
+                <p class="font-bold dark:text-white" lang="nl">${esc(q)}</p><p class="fr text-xs text-slate-500" lang="fr">${esc(fr)}</p></div></div>
               ${recordings[i] ? `<audio controls src="${recordings[i]}" class="w-full"></audio>` : ''}
-              <p class="flex flex-wrap items-center gap-2 text-sm text-emerald-800 dark:text-emerald-300">Modèle : <b lang="nl">${esc(model)}</b> ${audioBtn(model, 'Écouter')}</p>
+              <p class="flex flex-wrap items-center gap-2 text-sm text-emerald-800 dark:text-emerald-300">Voorbeeld: <b lang="nl">${esc(model)}</b> ${audioBtn(model)}</p>
               <div class="flex flex-wrap gap-4 text-sm dark:text-white">
-                <label class="flex items-center gap-2"><input type="checkbox" data-content="${i}" class="w-5 h-5 accent-emerald-600"> Réponse adaptée</label>
-                <label class="flex items-center gap-2"><input type="checkbox" data-pron="${i}" class="w-5 h-5 accent-emerald-600"> Prononciation compréhensible</label>
+                <label class="flex items-center gap-2"><input type="checkbox" data-content="${i}" class="w-5 h-5 accent-emerald-600"> ${tri('Goed antwoord', 'réponse adaptée')}</label>
+                <label class="flex items-center gap-2"><input type="checkbox" data-pron="${i}" class="w-5 h-5 accent-emerald-600"> ${tri('Goede uitspraak', 'prononciation compréhensible')}</label>
               </div>
             </li>`; }).join('')}
         </ol>
-        <button type="button" data-score class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-calculator" aria-hidden="true"></i> Calculer mon score</button>
+        <button type="button" data-score class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-calculator" aria-hidden="true"></i> Bereken mijn score</button>
         <div data-result></div>
       </div>`;
     window.scrollTo({ top: 0 });
@@ -205,9 +207,9 @@ function speakExam(el) {
       $('[data-score]', el).remove();
       $('[data-result]', el).innerHTML = `<div class="${CARD} p-6 text-center space-y-2">
         <p class="text-3xl font-black ${passed ? 'text-emerald-600' : 'text-red-600'}">${points} / 44</p>
-        <p class="text-sm font-bold ${passed ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}">${passed ? 'Objectif atteint' : 'Pas encore'} (objectif indicatif : ${target} / 44, d’après les guides de préparation)</p>
-        <p class="text-xs text-slate-500">Les réponses que vous n’avez pas cochées deux fois reviendront dans « Réviser ».</p>
-        <div class="flex justify-center gap-2 pt-2"><a href="#/parler" class="${BTN_SECONDARY}">Retour à Parler</a></div>
+        <p class="text-sm font-bold ${passed ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}">${passed ? 'Geslaagd' : 'Nog niet'} · ${tri(`richtgrens ${target} / 44`, 'seuil indicatif d’après les guides de préparation')}</p>
+        <p class="text-xs text-slate-500">${tri('Antwoorden die niet twee keer zijn aangevinkt, komen terug bij Herhalen.', 'les réponses non cochées deux fois reviendront dans Herhalen')}</p>
+        <div class="flex justify-center gap-2 pt-2"><a href="#/parler" class="${BTN_SECONDARY}">Terug naar Spreken</a></div>
       </div>`;
       $$('input[type=checkbox]', el).forEach((x) => (x.disabled = true));
     });

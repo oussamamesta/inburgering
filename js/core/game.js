@@ -13,9 +13,9 @@ export const XP_TRY = 2;
 export const XP_COMBO = 5;
 
 export const GOALS = [
-  { xp: 50, label: 'Détendu', sub: '≈ 5 min par jour' },
-  { xp: 100, label: 'Normal', sub: '≈ 10 min par jour' },
-  { xp: 200, label: 'Intensif', sub: '≈ 20 min par jour' },
+  { xp: 50, label: 'Rustig', fr: 'Détendu', sub: '± 5 min' },
+  { xp: 100, label: 'Normaal', fr: 'Normal', sub: '± 10 min' },
+  { xp: 200, label: 'Intensief', fr: 'Intensif', sub: '± 20 min' },
 ];
 
 // Titres de niveau : un mot néerlandais, avec sa traduction.

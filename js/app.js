@@ -9,6 +9,8 @@ import { toast, BTN_PRIMARY } from './core/ui.js';
 import { levelInfo, streakInfo, todayXp, dailyGoal, resetCombo, setQuiet } from './core/game.js';
 import { confetti, ring } from './core/fx.js';
 import { playSound } from './core/audio.js';
+import { applyLang, toggleLang, tr, frOn } from './core/i18n.js';
+import { icon } from './core/icons.js';
 import { render as accueil } from './views/accueil.js';
 import { render as manuel } from './views/manuel.js';
 import { render as kns } from './views/kns.js';
@@ -23,7 +25,7 @@ import { dailyPlan } from './core/plan.js';
 // Séance du jour (plan d’étude).
 function planSession(el) {
   el.innerHTML = '<div></div>';
-  session(el.firstElementChild, { title: 'Séance du jour', ids: dailyPlan().sessionIds, backHash: '#/', backLabel: 'Accueil' });
+  session(el.firstElementChild, { title: 'Les van vandaag', ids: dailyPlan().sessionIds, backHash: '#/', backLabel: 'Start' });
 }
 
 const ROUTES = {
@@ -64,7 +66,7 @@ function updateHud() {
   $('#hudDue').textContent = due;
   $('#hudDueTile').classList.toggle('ring-2', due > 0);
   $('#hudStreak').textContent = st.count;
-  $('#hudFlame').className = `text-xl ${st.todayMet ? 'animate-flame' : 'grayscale opacity-50'}`;
+  $('#hudFlame').className = st.todayMet ? 'text-orange-400 animate-flame' : 'text-slate-500';
   $('#hudGoal').textContent = `${Math.min(xp, 9999)}/${goal}`;
   $('#hudGoalRing').innerHTML = ring((xp / goal) * 100, { size: 30, stroke: 5, color: xp >= goal ? 'text-emerald-400' : 'text-amber-400', track: 'text-slate-700', animate: false, inner: xp >= goal ? '<span class="text-[11px]">✓</span>' : '' });
   $('#hudLevel').textContent = `Niv. ${lv.level}`;
@@ -83,7 +85,7 @@ function celebrateCard(icon, title, sub) {
     <div class="text-5xl" aria-hidden="true">${icon}</div>
     <p class="text-lg font-black text-slate-900 dark:text-white">${title}</p>
     <p class="text-sm text-slate-600 dark:text-slate-300">${sub}</p>
-    <button type="button" class="${BTN_PRIMARY} w-full">Super !</button>
+    <button type="button" class="${BTN_PRIMARY} w-full">Super!</button>
   </div>`;
   document.body.appendChild(wrap);
   const close = () => wrap.remove();
@@ -100,6 +102,18 @@ function closeSheet() { sheet().classList.add('opacity-0', 'pointer-events-none'
 
 // ── Démarrage ──
 applyTheme();
+applyLang();
+// Icônes SVG déclarées dans index.html (data-icon).
+document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = icon(el.dataset.icon, el.dataset.iconCls || 'w-6 h-6'); });
+// Le bouton FR agit sur place (sans recharger la page, pour ne pas perdre un exercice en cours).
+document.getElementById('frToggle')?.addEventListener('click', () => {
+  toggleLang();
+  const on = frOn();
+  document.querySelectorAll('[data-fr]').forEach((el) => el.classList.toggle('hidden', !on));
+  document.querySelectorAll('[data-toggle-fr] span').forEach((el) => { el.textContent = on ? 'Vertaling verbergen' : 'Vertaling tonen'; });
+  document.querySelectorAll('details[data-fr-details]').forEach((d) => { d.open = on; });
+  toast(on ? 'Vertaling aan · Français affiché' : 'Vertaling uit');
+});
 window.addEventListener('hashchange', route);
 on('xp', ({ gain }) => {
   updateHud();
@@ -109,8 +123,8 @@ on('xp', ({ gain }) => {
   clearTimeout(updateHud.t);
   updateHud.t = setTimeout(() => b.classList.add('hidden'), 1000);
 });
-on('levelup', (lv) => celebrateCard(lv.tier.icon, `Niveau ${lv.level} !`, `Vous êtes <b lang="nl">${lv.tier.nl}</b> (${lv.tier.fr}). Continuez comme ça !`));
-on('goal', ({ streak }) => celebrateCard('🔥', 'Objectif du jour atteint !', `Série : <b>${streak} jour${streak > 1 ? 's' : ''}</b>. Revenez demain pour la prolonger.`));
+on('levelup', (lv) => celebrateCard(lv.tier.icon, `Niveau ${lv.level}!`, tr(`Je bent nu <b>${lv.tier.nl}</b>. Ga zo door!`, `Vous êtes « ${lv.tier.nl} » (${lv.tier.fr}). Continuez comme ça !`)));
+on('goal', ({ streak }) => celebrateCard('🔥', 'Doel gehaald!', tr(`<b>${streak} ${streak > 1 ? 'dagen' : 'dag'}</b> op rij. Tot morgen!`, 'Objectif du jour atteint. Revenez demain pour prolonger la série.')));
 
 document.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
 document.addEventListener('keydown', unlockAudio, { once: true });
@@ -121,11 +135,11 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     unlockAudio();
     const played = speak(sayBtn.dataset.say, Number(sayBtn.dataset.sayRate || 1));
-    if (!played) toast('La lecture audio n’est pas disponible sur ce navigateur.');
+    if (!played) toast('Geluid werkt niet in deze browser. (Audio indisponible)');
     else if (!speechInfo().voice && !store.data.seenVoiceWarning) {
       store.data.seenVoiceWarning = true;
       store.save();
-      toast('Pas de voix néerlandaise sur l’appareil : voir Réglages.');
+      toast('Geen Nederlandse stem gevonden: zie Instellingen.');
     }
     return;
   }

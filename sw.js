@@ -1,7 +1,7 @@
 // Service worker : garde une copie de l’application pour l’utiliser sans connexion.
 // Pensez à changer VERSION à chaque mise à jour (voir README).
 
-const VERSION = 'v1.3.0';
+const VERSION = 'v1.4.0';
 const CACHE = `inburgering-${VERSION}`;
 
 const FILES = [
@@ -45,6 +45,11 @@ const FILES = [
   './js/core/plan.js',
   './js/core/game.js',
   './js/core/fx.js',
+  './js/core/i18n.js',
+  './js/core/icons.js',
+  './js/core/scenes.js',
+  './js/content/manuel_nl.js',
+  './js/content/verhalen.js',
 ];
 
 self.addEventListener('install', (event) => {

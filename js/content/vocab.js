@@ -136,7 +136,7 @@ const RAW = [
   ['veilig', null, 'adj', 'en sécurité, sûr', 'Hier ben je veilig.', 'Ici, tu es en sécurité.', 'Sécurité', null],
 ];
 
-export const POS_LABELS = { n: 'nom', v: 'verbe', adj: 'adjectif', adv: 'adverbe', x: 'expression' };
+export const POS_LABELS = { n: 'naamwoord', v: 'werkwoord', adj: 'bijvoeglijk naamwoord', adv: 'bijwoord', x: 'uitdrukking' };
 
 // Fusion avec le vocabulaire supplémentaire (un mot n’apparaît qu’une fois).
 const seen = new Set();
@@ -147,7 +147,15 @@ export const VOCAB = [...RAW, ...VOCAB_PLUS_ROWS].filter(([nl]) => (seen.has(nl)
 // Regroupement de thèmes voisins, puis séries de 15 mots maximum par thème.
 const THEME_OF = { Général: 'Adjectifs & mots utiles', Sécurité: 'Administration', Leren: 'Travail & école', Apprendre: 'Travail & école', Travail: 'Travail & école',
   Transports: 'Ville & transports', Logement: 'Maison', Santé: 'Corps & santé', Temps: 'Temps & calendrier', Courses: 'Courses & argent' };
-VOCAB.forEach((w) => { w.theme = THEME_OF[w.theme] || w.theme; });
+// Noms de thèmes en néerlandais (le français reste disponible pour la traduction).
+export const THEME_NL = {
+  'Personnes': 'Mensen', 'Corps & santé': 'Lichaam en gezondheid', 'Maison': 'Huis', 'Alimentation': 'Eten en drinken',
+  'Courses & argent': 'Boodschappen en geld', 'Vêtements & couleurs': 'Kleren en kleuren', 'Temps & calendrier': 'Tijd en kalender',
+  'Nombres': 'Getallen', 'Ville & transports': 'Stad en vervoer', 'Travail & école': 'Werk en school', 'Loisirs & météo': 'Vrije tijd en weer',
+  'Verbes courants': 'Werkwoorden', 'Adjectifs & mots utiles': 'Handige woorden', 'Administration': 'Gemeente en papieren',
+};
+VOCAB.forEach((w) => { const fr = THEME_OF[w.theme] || w.theme; w.themeFr = fr; w.theme = THEME_NL[fr] || fr; });
+export const THEME_FR = Object.fromEntries(Object.entries(THEME_NL).map(([fr, nl]) => [nl, fr]));
 
 export const THEMES = [...new Set(VOCAB.map((w) => w.theme))];
 export const FLASH_SETS = THEMES.flatMap((t) => {

@@ -57,8 +57,8 @@ export const normText = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]
 
 export function micErrorText(err) {
   const m = String(err?.name || err?.message || '');
-  if (/NotAllowed|Security|not-allowed|service-not-allowed/i.test(m)) return 'Le micro est bloqué ici. Autorisez-le dans le navigateur, ou ouvrez l’application depuis son adresse GitHub Pages. Vous pouvez aussi simplement répondre à voix haute.';
-  if (/unsupported/i.test(m)) return 'Votre navigateur ne permet pas cette fonction. Répondez simplement à voix haute.';
-  if (/no-speech/i.test(m)) return 'Aucune voix détectée. Réessayez en parlant un peu plus fort.';
-  return 'Le micro n’est pas disponible. Répondez simplement à voix haute.';
+  if (/NotAllowed|Security|not-allowed|service-not-allowed/i.test(m)) return 'De microfoon is geblokkeerd. Antwoord gewoon hardop. (Micro bloqué : autorisez-le dans le navigateur, ou utilisez l’adresse GitHub Pages.)';
+  if (/unsupported/i.test(m)) return 'Deze browser kan dit niet. Antwoord gewoon hardop. (Fonction non disponible.)';
+  if (/no-speech/i.test(m)) return 'Ik hoor niets. Probeer het nog eens, iets harder. (Aucune voix détectée.)';
+  return 'De microfoon werkt niet. Antwoord gewoon hardop. (Micro indisponible.)';
 }

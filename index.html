@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full">
+<html lang="nl" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Préparation à l’examen d’intégration néerlandais de base à l’étranger (A1) : société (KNS), lecture, vocabulaire, en français.">
+  <meta name="description" content="Oefenen voor het basisexamen inburgering buitenland (A1): KNS, lezen en spreken. Préparation à l’examen de base, avec traduction française.">
   <meta name="theme-color" content="#0A2540">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Inburgering">
   <meta name="format-detection" content="telephone=no">
-  <title>Inburgering A1 — Préparation à l’examen</title>
+  <title>Inburgering A1 — Oefenen voor het basisexamen</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -22,47 +22,51 @@
       var s = JSON.parse(localStorage.getItem('inburgering_a1_v1') || '{}').settings || {};
       var t = s.theme || 'system';
       if (t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+      if (s.showFr) document.documentElement.classList.add('show-fr');
     } catch (e) {}
   </script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 app-viewport flex flex-col">
-  <a href="#view" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-white text-delftBlue px-3 py-2 rounded-xl">Aller au contenu</a>
+  <a href="#view" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-white text-delftBlue px-3 py-2 rounded-xl">Naar de inhoud</a>
 
   <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm ios-header-padding px-3 sm:px-6">
     <div class="max-w-7xl mx-auto flex flex-col gap-2 py-2">
       <div class="flex items-center justify-between gap-2">
-        <a href="#/" class="flex items-center gap-2.5 touch-active" aria-label="Accueil">
+        <a href="#/" class="flex items-center gap-2.5 touch-active" aria-label="Start">
           <span class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-dutchOrange to-amber-500 flex items-center justify-center text-lg shadow-md" aria-hidden="true">🇳🇱</span>
           <span>
             <span class="flex items-center gap-1.5">
               <span class="font-black text-base sm:text-lg text-delftBlue dark:text-white tracking-tight">Inburgering</span>
               <span class="bg-dutchOrange text-white text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider">A1</span>
             </span>
-            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold hidden sm:block">Examen de base à l’étranger · explications en français</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold hidden sm:block">Basisexamen buitenland</span>
           </span>
         </a>
-        <nav class="hidden lg:flex items-center gap-0.5 text-xs font-bold text-slate-600 dark:text-slate-300" aria-label="Navigation principale">
-          <a href="#/" data-nav="" class="nav-link">Accueil</a>
-          <a href="#/manuel" data-nav="manuel" class="nav-link">📖 Manuel</a>
-          <a href="#/kns" data-nav="kns" class="nav-link">Société</a>
-          <a href="#/parler" data-nav="parler" class="nav-link">Parler</a>
-          <a href="#/mots" data-nav="mots" class="nav-link">Mots</a>
-          <a href="#/grammaire" data-nav="grammaire" class="nav-link">Grammaire</a>
-          <a href="#/lecture" data-nav="lecture" class="nav-link">Lecture</a>
-          <a href="#/ecoute" data-nav="ecoute" class="nav-link">Écoute</a>
-          <a href="#/examen" data-nav="examen" class="nav-link">Examens</a>
-          <a href="#/reviser" data-nav="reviser" class="nav-link">Réviser</a>
-          <a href="#/progres" data-nav="progres" class="nav-link">Progrès</a>
+        <nav class="hidden lg:flex items-center gap-0.5 text-xs font-bold text-slate-600 dark:text-slate-300" aria-label="Menu">
+          <a href="#/" data-nav="" class="nav-link">Start</a>
+          <a href="#/manuel" data-nav="manuel" class="nav-link">Handboek</a>
+          <a href="#/kns" data-nav="kns" class="nav-link">KNS</a>
+          <a href="#/lecture" data-nav="lecture" class="nav-link">Lezen</a>
+          <a href="#/parler" data-nav="parler" class="nav-link">Spreken</a>
+          <a href="#/mots" data-nav="mots" class="nav-link">Woorden</a>
+          <a href="#/grammaire" data-nav="grammaire" class="nav-link">Grammatica</a>
+          <a href="#/ecoute" data-nav="ecoute" class="nav-link">Luisteren</a>
+          <a href="#/examen" data-nav="examen" class="nav-link">Oefenexamens</a>
+          <a href="#/reviser" data-nav="reviser" class="nav-link">Herhalen</a>
+          <a href="#/progres" data-nav="progres" class="nav-link">Voortgang</a>
         </nav>
-        <a href="#/reglages" data-nav="reglages" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center touch-active" aria-label="Réglages"><i class="fa-solid fa-gear" aria-hidden="true"></i></a>
+        <div class="flex items-center gap-2">
+          <button type="button" id="frToggle" aria-pressed="false" class="fr-toggle h-10 px-3 rounded-xl font-black text-sm flex items-center gap-1.5 touch-active" title="Vertaling (français)"><span aria-hidden="true">🇫🇷</span><span>FR</span></button>
+          <a href="#/reglages" data-nav="reglages" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center touch-active" aria-label="Instellingen"><span data-icon="gear" data-icon-cls="w-6 h-6"></span></a>
+        </div>
       </div>
 
-      <div class="bg-slate-900 text-white rounded-2xl px-3 py-2 border border-slate-700 shadow-md flex items-center justify-between gap-1 relative" aria-label="Résumé de votre progression">
-        <a href="#/progres" class="flex items-center gap-1.5 rounded-xl py-0.5 touch-active" aria-label="Série de jours">
-          <span id="hudFlame" class="text-xl" aria-hidden="true">🔥</span>
-          <span><span id="hudStreak" class="block font-black text-sm leading-none tabular-nums">0</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">jours</span></span>
+      <div class="bg-slate-900 text-white rounded-2xl px-3 py-2 border border-slate-700 shadow-md flex items-center justify-between gap-1 relative" aria-label="Jouw voortgang">
+        <a href="#/progres" class="flex items-center gap-1.5 rounded-xl py-0.5 touch-active" aria-label="Dagen op rij">
+          <span id="hudFlame" class="text-orange-400" data-icon="flame" data-icon-cls="w-6 h-6"></span>
+          <span><span id="hudStreak" class="block font-black text-sm leading-none tabular-nums">0</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">dagen</span></span>
         </a>
-        <a href="#/" class="flex items-center gap-2 rounded-xl py-0.5 touch-active" aria-label="Objectif du jour">
+        <a href="#/" class="flex items-center gap-2 rounded-xl py-0.5 touch-active" aria-label="Doel van vandaag">
           <span id="hudGoalRing" aria-hidden="true"></span>
           <span><span id="hudGoal" class="block font-black text-sm leading-none tabular-nums">0/100</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">XP</span></span>
         </a>
@@ -70,9 +74,9 @@
           <span id="hudLevelIcon" class="text-xl" aria-hidden="true">🌱</span>
           <span><span id="hudLevel" class="block font-black text-sm leading-none">Niv. 1</span><span id="hudTier" class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">Starter</span></span>
         </a>
-        <a href="#/reviser" id="hudDueTile" class="flex items-center gap-1.5 rounded-xl px-1.5 py-0.5 ring-dutchOrange touch-active" aria-label="Éléments à réviser">
-          <span class="text-lg" aria-hidden="true">🔁</span>
-          <span><span id="hudDue" class="block font-black text-sm leading-none text-amber-400 tabular-nums">0</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">révisions</span></span>
+        <a href="#/reviser" id="hudDueTile" class="flex items-center gap-1.5 rounded-xl px-1.5 py-0.5 ring-dutchOrange touch-active" aria-label="Herhalen">
+          <span class="text-rose-300" data-icon="repeat" data-icon-cls="w-5 h-5"></span>
+          <span><span id="hudDue" class="block font-black text-sm leading-none text-amber-400 tabular-nums">0</span><span class="block text-[10px] text-slate-400 font-bold uppercase tracking-wide whitespace-nowrap">herhalen</span></span>
         </a>
         <div id="hudBadge" class="hidden" aria-live="polite"></div>
       </div>
@@ -81,32 +85,33 @@
 
   <main id="view" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-28 lg:pb-10" tabindex="-1"></main>
 
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-700 ios-bottom-dock px-2 shadow-lg" aria-label="Navigation">
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-700 ios-bottom-dock px-2 shadow-lg" aria-label="Menu">
     <div class="grid grid-cols-5 h-16 items-center text-center">
-      <a href="#/" data-nav="" class="tab-link"><i class="fa-solid fa-house text-lg" aria-hidden="true"></i><span>Accueil</span></a>
-      <a href="#/manuel" data-nav="manuel" class="tab-link"><i class="fa-solid fa-book-open text-lg" aria-hidden="true"></i><span>Manuel</span></a>
-      <a href="#/kns" data-nav="kns" class="tab-link"><i class="fa-solid fa-landmark text-lg" aria-hidden="true"></i><span>Société</span></a>
-      <a href="#/parler" data-nav="parler" class="tab-link"><i class="fa-solid fa-microphone text-lg" aria-hidden="true"></i><span>Parler</span></a>
-      <button type="button" data-open-more class="tab-link" aria-haspopup="dialog"><i class="fa-solid fa-ellipsis text-lg" aria-hidden="true"></i><span>Plus</span></button>
+      <a href="#/" data-nav="" class="tab-link"><span data-icon="home" data-icon-cls="w-6 h-6"></span><span>Start</span></a>
+      <a href="#/kns" data-nav="kns" class="tab-link"><span data-icon="kns" data-icon-cls="w-6 h-6"></span><span>KNS</span></a>
+      <a href="#/lecture" data-nav="lecture" class="tab-link"><span data-icon="read" data-icon-cls="w-6 h-6"></span><span>Lezen</span></a>
+      <a href="#/parler" data-nav="parler" class="tab-link"><span data-icon="mic" data-icon-cls="w-6 h-6"></span><span>Spreken</span></a>
+      <button type="button" data-open-more class="tab-link" aria-haspopup="dialog"><span data-icon="more" data-icon-cls="w-6 h-6"></span><span>Meer</span></button>
     </div>
   </nav>
 
-  <div id="moreSheet" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-end" role="dialog" aria-modal="true" aria-label="Plus de modules" aria-hidden="true">
+  <div id="moreSheet" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-end" role="dialog" aria-modal="true" aria-label="Meer" aria-hidden="true">
     <div class="w-full bg-white dark:bg-slate-800 rounded-t-3xl p-5 space-y-4 ios-bottom-dock border-t border-slate-200 dark:border-slate-700 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center">
-        <h2 class="font-black text-lg text-slate-900 dark:text-white">Plus de modules</h2>
-        <button type="button" data-close-more class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center" aria-label="Fermer"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        <h2 class="font-black text-lg text-slate-900 dark:text-white">Meer</h2>
+        <button type="button" data-close-more class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center" aria-label="Sluiten"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <a href="#/mots" class="sheet-link bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"><span class="text-2xl">🎴</span><b>Mots</b><small>Cartes avec audio</small></a>
-        <a href="#/reviser" class="sheet-link bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-900"><span class="text-2xl">🔁</span><b>Réviser</b><small>Répétition espacée</small></a>
-        <a href="#/examen" class="sheet-link bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900"><span class="text-2xl">🏆</span><b>Examens blancs</b><small>Société, Lecture, Parler</small></a>
-        <a href="#/grammaire" class="sheet-link bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-900"><span class="text-2xl">✍️</span><b>Grammaire</b><small>Phrases & règles</small></a>
-        <a href="#/lecture" class="sheet-link bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-900"><span class="text-2xl">📄</span><b>Lecture</b><small>Mots et textes</small></a>
-        <a href="#/ecoute" class="sheet-link bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900"><span class="text-2xl">🎧</span><b>Écoute</b><small>10 messages</small></a>
-        <a href="#/dico" class="sheet-link bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"><span class="text-2xl">📚</span><b>Dictionnaire</b><small>Mots avec audio</small></a>
-        <a href="#/progres" class="sheet-link bg-slate-50 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600"><span class="text-2xl">📈</span><b>Progrès</b><small>Points forts et faibles</small></a>
-        <a href="#/reglages" class="sheet-link bg-slate-50 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600"><span class="text-2xl">⚙️</span><b>Réglages</b><small>Voix, thème, sauvegarde</small></a>
+        <a href="#/manuel" class="sheet-link bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-900"><span class="text-orange-600 dark:text-orange-300" data-icon="book" data-icon-cls="w-7 h-7"></span><b>Handboek</b><small class="fr">Manuel (société)</small></a>
+        <a href="#/lecture/verhalen" class="sheet-link bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-900"><span class="text-teal-600 dark:text-teal-300" data-icon="story" data-icon-cls="w-7 h-7"></span><b>Verhalen</b><small class="fr">Histoires illustrées</small></a>
+        <a href="#/mots" class="sheet-link bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"><span class="text-emerald-600 dark:text-emerald-300" data-icon="cards" data-icon-cls="w-7 h-7"></span><b>Woorden</b><small class="fr">Mots</small></a>
+        <a href="#/grammaire" class="sheet-link bg-violet-50 dark:bg-violet-950/40 border-violet-200 dark:border-violet-900"><span class="text-violet-600 dark:text-violet-300" data-icon="pencil" data-icon-cls="w-7 h-7"></span><b>Grammatica</b><small class="fr">Grammaire</small></a>
+        <a href="#/ecoute" class="sheet-link bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-900"><span class="text-indigo-600 dark:text-indigo-300" data-icon="headphones" data-icon-cls="w-7 h-7"></span><b>Luisteren</b><small class="fr">Écoute</small></a>
+        <a href="#/examen" class="sheet-link bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900"><span class="text-amber-700 dark:text-amber-300" data-icon="trophy" data-icon-cls="w-7 h-7"></span><b>Oefenexamens</b><small class="fr">Examens blancs</small></a>
+        <a href="#/reviser" class="sheet-link bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900"><span class="text-rose-600 dark:text-rose-300" data-icon="repeat" data-icon-cls="w-7 h-7"></span><b>Herhalen</b><small class="fr">Réviser</small></a>
+        <a href="#/dico" class="sheet-link bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"><span class="text-emerald-600 dark:text-emerald-300" data-icon="book" data-icon-cls="w-7 h-7"></span><b>Woordenboek</b><small class="fr">Dictionnaire</small></a>
+        <a href="#/progres" class="sheet-link bg-slate-50 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600"><span class="text-slate-600 dark:text-slate-300" data-icon="chart" data-icon-cls="w-7 h-7"></span><b>Voortgang</b><small class="fr">Progrès</small></a>
+        <a href="#/reglages" class="sheet-link bg-slate-50 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600"><span class="text-slate-600 dark:text-slate-300" data-icon="gear" data-icon-cls="w-7 h-7"></span><b>Instellingen</b><small class="fr">Réglages</small></a>
       </div>
     </div>
   </div>
@@ -115,7 +120,7 @@
     <i class="fa-solid fa-circle-info text-dutchOrange" aria-hidden="true"></i> <span id="toastMessage"></span>
   </div>
 
-  <noscript><p style="padding:1rem">Cette application a besoin de JavaScript.</p></noscript>
+  <noscript><p style="padding:1rem">Deze app heeft JavaScript nodig.</p></noscript>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

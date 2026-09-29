@@ -1,9 +1,0 @@
-<!doctype html><meta charset="utf-8"><body style="margin:0;padding:16px;font-family:sans-serif;background:#fff">
-<div id="g" style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px"></div>
-<script type="module">
-import { icon } from './js/core/icons.js';
-const names=['home','book','kns','mic','read','story','cards','pencil','headphones','repeat','trophy','chart','gear','flame','star','target','wonen','molen','weegschaal','taal','school','zorg','werk','mensen'];
-const cols=['#c2410c','#0f766e','#1d4ed8','#047857','#6d28d9','#4338ca'];
-document.getElementById('g').innerHTML=names.map((n,i)=>`<div style="text-align:center;color:${cols[i%6]}"><div style="width:56px;height:56px;margin:auto;border-radius:16px;background:${cols[i%6]}18;display:flex;align-items:center;justify-content:center">${icon(n,'')}</div><small style="color:#333">${n}</small></div>`).join('');
-document.querySelectorAll('svg').forEach(s=>{s.setAttribute('width','32');s.setAttribute('height','32')});
-</script>

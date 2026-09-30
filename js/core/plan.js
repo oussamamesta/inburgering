@@ -42,7 +42,8 @@ export function readiness(key) {
 const unseen = (ids) => ids.filter((id) => !get(id));
 
 export function dailyPlan() {
-  const days = daysUntilExam();
+  const d0 = daysUntilExam();
+  const days = d0 !== null && d0 < 0 ? null : d0; // examen passé : plan normal
   const finalWeek = days !== null && days <= 7;
   const studyDays = days === null ? 42 : Math.max(1, days - 7);
   const quota = (list, min) => (list.length ? Math.min(list.length, Math.max(min, Math.ceil(list.length / studyDays))) : 0);
@@ -58,8 +59,8 @@ export function dailyPlan() {
     days, finalWeek, studyDays,
     due: Math.min(due.length, 20),
     manuel: finalWeek ? 0 : quota(manuel, 1),
-    kns: finalWeek ? 0 : quota(kns, 3),
-    vocab: finalWeek ? 0 : quota(vocab, 5),
+    kns: finalWeek ? Math.min(kns.length, 3) : quota(kns, 3),
+    vocab: finalWeek ? Math.min(vocab.length, 5) : quota(vocab, 5),
     texts: finalWeek ? 0 : quota(texts, 1),
     speak: finalWeek ? 0 : quota(speak, 2),
   };
@@ -67,7 +68,7 @@ export function dailyPlan() {
   // Dernière semaine : un examen blanc par jour, en alternant les trois parties.
   if (finalWeek) {
     const order = ['kns', 'lecture', 'parler'];
-    plan.mock = order[(days ?? 0) % 3];
+    plan.mock = order[(((days ?? 0) % 3) + 3) % 3];
   }
 
   plan.nextManuel = manuel.length ? manuel[0] : null;

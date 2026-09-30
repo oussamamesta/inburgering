@@ -66,7 +66,7 @@ export function render(el) {
       <section class="${CARD} p-5 space-y-3">
         <h2 class="font-black dark:text-white">${tri('Weergave', 'affichage')}</h2>
         ${seg('theme', s.theme, [['system', 'Automatisch'], ['light', 'Licht'], ['dark', 'Donker']])}
-        ${toggle('showfr', s.showFr, 'Franse vertaling tonen · traduction française', 'Même réglage que le bouton 🇫🇷 FR en haut. Désactivé : tout est en néerlandais ; touchez « Vertaling tonen » pour une question.')}
+        ${toggle('showfr', s.showFr, 'Franse vertaling tonen · traduction française', tr('Zelfde als de knop 🇫🇷 FR bovenaan. Uit: alles in het Nederlands; tik op „Vertaling tonen” bij een vraag.', 'Même réglage que le bouton 🇫🇷 FR en haut. Désactivé : tout est en néerlandais ; touchez « Vertaling tonen » pour une question.'))}
         ${toggle('sound', s.sound, 'Geluid bij antwoorden', tri('Een kort geluidje bij goed of fout.', 'petit son pour bonne / mauvaise réponse'))}
       </section>
       <section class="${CARD} p-5 space-y-3">
@@ -87,7 +87,7 @@ export function render(el) {
       </section>
       <section class="${CARD} p-5 space-y-3">
         <h2 class="font-black dark:text-white">${tri('Voortgang bewaren', 'sauvegarde des progrès')}</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400" lang="fr">Vos progrès sont enregistrés dans ce navigateur, sur cet appareil. Exportez-les pour les garder ou les transférer sur un autre téléphone.</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400">${tr('Je voortgang staat alleen in deze browser, op dit toestel. Exporteer hem om hem te bewaren of naar een andere telefoon te zetten.', 'Vos progrès sont enregistrés dans ce navigateur, sur cet appareil. Exportez-les pour les garder ou les transférer sur un autre téléphone.')}</p>
         <div class="flex flex-wrap gap-2">
           <button type="button" data-export class="${BTN_PRIMARY}"><i class="fa-solid fa-download" aria-hidden="true"></i> Exporteren · exporter</button>
           <label class="${BTN_SECONDARY} cursor-pointer"><i class="fa-solid fa-upload" aria-hidden="true"></i> Importeren · importer<input type="file" accept="application/json,.json" data-import class="sr-only"></label>
@@ -114,7 +114,7 @@ export function render(el) {
   const redraw = () => { if (location.hash.startsWith('#/reglages')) render(el); };
   el.querySelectorAll('[data-theme]').forEach((b) => b.addEventListener('click', () => { s.theme = b.dataset.theme; store.save(); applyTheme(); redraw(); }));
   el.querySelectorAll('[data-rate]').forEach((b) => b.addEventListener('click', () => { s.rate = Number(b.dataset.rate); store.save(); speak('Dit is de nieuwe snelheid.'); redraw(); }));
-  el.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => { s.dailyGoal = Number(b.dataset.goal); store.save(); toast(`Doel: ${s.dailyGoal} XP per dag.`); redraw(); }));
+  el.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => { s.dailyGoal = Number(b.dataset.goal); store.save(); toast(`Doel: ${s.dailyGoal} XP per dag.`); window.dispatchEvent(new Event('hud')); redraw(); }));
   el.querySelector('[data-examdate]').addEventListener('change', (e) => { s.examDate = e.target.value || null; store.save(); toast(s.examDate ? 'Examendatum opgeslagen.' : 'Datum gewist.'); redraw(); });
   el.querySelector('[data-cleardate]')?.addEventListener('click', () => { s.examDate = null; store.save(); redraw(); });
   el.querySelector('[data-showfr]').addEventListener('change', (e) => { s.showFr = e.target.checked; store.save(); applyLang(); });
@@ -148,6 +148,8 @@ export function render(el) {
     try {
       store.importJSON(text);
       applyTheme();
+      applyLang();
+      window.dispatchEvent(new Event('hashchange'));
       toast('Voortgang teruggezet.');
       redraw();
     } catch {
@@ -172,6 +174,7 @@ export function render(el) {
     if (!(await ask('Alle voortgang definitief wissen?', 'Alles wissen', true, 'Effacer définitivement tous vos progrès ? Conseil : exportez-les d’abord.'))) return;
     store.reset();
     applyTheme();
+    applyLang();
     toast('Alles gewist.');
     location.hash = '#/';
   });

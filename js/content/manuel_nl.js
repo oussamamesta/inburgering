@@ -21,7 +21,7 @@ export const MANUEL_NL = {
   'm-woning': P('Een huis zoeken', [
     'Je kunt een huis huren of kopen.', 'Een sociale huurwoning is goedkoper.', 'Voor een sociale huurwoning schrijf je je in. Dan wacht je op je beurt.',
     'In grote steden wacht je soms jaren.', 'Moet je betalen voordat je het huis ziet? Pas op, dat is vaak oplichting.', 'Met een laag inkomen krijg je misschien huurtoeslag.'],
-    'Hoe krijg je een sociale huurwoning?', ['Je schrijft je in en je wacht', 'De gemeente geeft je meteen een huis', 'Je wint het in een loterij']),
+    'Hoe krijg je een sociale huurwoning?', ['Je schrijft je in en je wacht', 'De gemeente geeft je meteen een huis', 'Je koopt het op de markt']),
   'm3p1': P('Huurder en verhuurder', [
     'Je huurt een huis van een verhuurder.', 'Wil je een muur weghalen of een nieuwe keuken? Vraag eerst toestemming, op papier.', 'Kleine dingen mogen meestal wel, zoals verven of een plank ophangen.',
     'De verhuurder betaalt groot onderhoud, zoals een nieuw dak.', 'Kun je de huur niet betalen? Bel dan snel de verhuurder.'],
@@ -29,17 +29,17 @@ export const MANUEL_NL = {
   'm3p2': P('Afval en veiligheid', [
     'In Nederland scheiden we afval.', 'Groente en fruit gaan in de gft-bak.', 'Glas gaat in de glasbak. Papier gaat in de papierbak.',
     'Oude meubels zijn grofvuil. Die breng je naar de milieustraat.', 'Elke woning moet een rookmelder hebben, op elke verdieping.'],
-    'Waar gaat een oude bank naartoe?', ['Naar de milieustraat, of het wordt opgehaald als grofvuil', 'In de papierbak', 'Op de stoep']),
+    'Waar gaat een oude bank naartoe?', ['Naar de milieustraat, of hij wordt opgehaald als grofvuil', 'In de papierbak', 'Op de stoep']),
 
   // ── Geschiedenis ──
   'm-gouden': P('Willem van Oranje en de Gouden Eeuw', [
     'Lang geleden was Nederland van de koning van Spanje.', 'Willem van Oranje leidde de opstand tegen Spanje.', 'Hij wordt de ‘Vader des Vaderlands’ genoemd.',
     'Het volkslied, het Wilhelmus, gaat over hem.', 'In de 17e eeuw werd Nederland rijk door handel. Dat heet de Gouden Eeuw.', 'In die tijd schilderde Rembrandt.'],
-    'Hoe heet de 17e eeuw in Nederland?', ['De Gouden Eeuw', 'De IJzertijd', 'De Renaissance']),
+    'Hoe heet de 17e eeuw in Nederland?', ['De Gouden Eeuw', 'De IJzeren Eeuw', 'De Renaissance']),
   'm-slavernij': P('Koloniën en slavernij', [
-    'Nederland had vroeger koloniën, bijvoorbeeld Indonesië en Suriname.', 'Nederlandse handelaren verkochten mensen als slaaf.', 'Op 1 juli 1863 schafte Nederland de slavernij af.',
+    'Nederland had vroeger koloniën, bijvoorbeeld Indonesië en Suriname.', 'Nederlandse handelaren verkochten mensen als slaaf.', 'Op 1 juli 1863 schafte Nederland de slavernij af in Suriname en op de Antillen.',
     'Elk jaar op 1 juli herdenken mensen dat: Keti Koti.', 'In 2023 zei de koning sorry voor de slavernij.'],
-    'In welk jaar schafte Nederland de slavernij af?', ['In 1863', 'In 1945', 'In 1975']),
+    'In welk jaar schafte Nederland de slavernij in Suriname af?', ['In 1863', 'In 1945', 'In 1975']),
   'm6p2': P('De Tweede Wereldoorlog', [
     'Van 1940 tot 1945 was Nederland bezet door Duitsland.', 'Meer dan 100.000 Joodse Nederlanders zijn vermoord.', 'Anne Frank schreef een dagboek in haar schuilplaats in Amsterdam.',
     'Op 4 mei om 20.00 uur zijn we twee minuten stil. We denken aan de doden.', 'Op 5 mei vieren we de bevrijding.'],
@@ -56,7 +56,7 @@ export const MANUEL_NL = {
   // ── Staatsinrichting en rechtsstaat ──
   'm5p1': P('De koning en de regering', [
     'Koning Willem-Alexander is het staatshoofd.', 'De ministers besturen het land, niet de koning.', 'De minister-president leidt de regering.',
-    'Meestal werken een paar partijen samen in de regering.'],
+    'In de regering werken altijd een paar partijen samen.'],
     'Wat doet de koning?', ['Hij is staatshoofd, maar hij bestuurt het land niet', 'Hij maakt alleen alle wetten', 'Hij is de baas van de politie']),
   'm5p2': P('Het parlement en de verkiezingen', [
     'Het parlement zit in Den Haag.', 'De Tweede Kamer heeft 150 leden. We kiezen ze elke vier jaar.', 'De Tweede Kamer maakt wetten. De Eerste Kamer controleert de wetten.',
@@ -67,7 +67,7 @@ export const MANUEL_NL = {
     'Mannen en vrouwen hebben dezelfde rechten.', 'Sinds 2001 mogen twee mannen of twee vrouwen trouwen.'],
     'Wat staat er in artikel 1 van de Grondwet?', ['Iedereen is gelijk; discriminatie is verboden', 'Iedereen moet stemmen', 'Er is één godsdienst']),
   'm-recht': P('Het recht en jouw rechten', [
-    'Een rechter beslist in een rechtszaak. De regering mag de rechter niets opdragen.', 'Geweld is altijd verboden, ook thuis.', 'Word je gediscrimineerd? Meld het, of doe aangifte bij de politie.',
+    'Een rechter beslist in een rechtszaak. De regering mag de rechter niet zeggen wat hij moet doen.', 'Geweld is altijd verboden, ook thuis.', 'Word je gediscrimineerd? Meld het, of doe aangifte bij de politie.',
     'Gratis juridisch advies krijg je bij het Juridisch Loket.', 'Vanaf 14 jaar moet je een identiteitsbewijs kunnen laten zien.'],
     'Vanaf welke leeftijd moet je een identiteitsbewijs kunnen laten zien?', ['14 jaar', '18 jaar', '21 jaar']),
   'm-ind': P('Verblijfsvergunning en naturalisatie', [
@@ -75,7 +75,7 @@ export const MANUEL_NL = {
     'Na een aantal jaren kun je Nederlander worden. Dat heet naturalisatie.'],
     'Wie beslist over je verblijfsvergunning?', ['De IND', 'DUO', 'De gemeente']),
   'm7p1': P('De gemeente, BSN en DigiD', [
-    'Na aankomst schrijf je je in bij de gemeente.', 'Dan krijg je een BSN. Dat is je persoonlijke nummer.', 'Met DigiD regel je dingen op internet, bijvoorbeeld met de belasting.',
+    'Na aankomst schrijf je je in bij de gemeente.', 'Dan krijg je een BSN. Dat is je persoonlijke nummer.', 'Met DigiD regel je dingen op internet, bijvoorbeeld met de Belastingdienst.',
     'Geef je DigiD nooit aan iemand anders.', 'Ga je verhuizen? Geef je nieuwe adres door aan de gemeente.'],
     'Waarvoor gebruik je DigiD?', ['Om zaken met de overheid te regelen op internet', 'Om treinkaartjes te kopen', 'Om boodschappen te doen']),
   'm7p2': P('Politie: 112 of 0900-8844?', [
@@ -151,8 +151,8 @@ export const MANUEL_NL = {
     'Zwartwerken is werken zonder dat de belasting het weet. Dat is verboden.', 'Een vakbond helpt werknemers.'],
     'Wat is zwartwerken?', ['Werken zonder dat de belasting het weet', 'Werken in de nacht', 'Overuren maken']),
   'm2p3': P('Loon en belasting', [
-    'Op je loonstrook staan je uren en je loon.', 'Bruto is het loon voor de belasting. Netto krijg je op je rekening.', 'De Belastingdienst int de belasting.',
-    'De Belastingdienst betaalt ook toeslagen, zoals huurtoeslag.', 'Je doet elk jaar aangifte, meestal voor 1 mei.'],
+    'Op je loonstrook staan je uren en je loon.', 'Bruto is je loon vóór de belasting. Netto is het geld op je rekening.', 'De Belastingdienst int de belasting.',
+    'De Belastingdienst betaalt ook toeslagen, zoals huurtoeslag.', 'Krijg je een brief van de Belastingdienst? Dan doe je aangifte, meestal vóór 1 mei.'],
     'Wie int de belasting en betaalt toeslagen?', ['De Belastingdienst', 'De politie', 'De gemeente']),
   'm-geld': P('Geld en pensioen', [
     'In Nederland betaal je bijna overal met je bankpas.', 'Open dus snel een bankrekening.', 'Heb je schulden? De gemeente helpt je gratis.',
@@ -167,7 +167,7 @@ export const MANUEL_NL = {
   'm8p2': P('Verjaardagen en begroeten', [
     'Op een verjaardag zitten mensen vaak in een kring.', 'Je feliciteert de jarige en ook de familie: ‘Gefeliciteerd met je vrouw!’', 'Ontmoet je iemand voor het eerst? Geef een hand en zeg je naam.',
     'Nederlanders zijn vaak direct. Dat is niet onbeleefd.'],
-    'Wie feliciteer je op een verjaardag?', ['De jarige en de familie en vrienden', 'Alleen de jarige', 'Niemand']),
+    'Wie feliciteer je op een verjaardag?', ['De jarige en zijn of haar familie', 'Alleen de jarige', 'Niemand']),
   'm3p3': P('De buren', [
     'In een nieuw huis stel je je voor aan de buren.', 'Na 22.00 uur maak je geen lawaai.', 'Heb je last van de buren? Praat eerst rustig met ze.',
     'Helpt dat niet? Vraag hulp aan de verhuurder of aan buurtbemiddeling.'],

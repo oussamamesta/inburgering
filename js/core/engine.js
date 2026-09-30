@@ -184,6 +184,9 @@ export function flashcard(host, w, onDone) {
   card.addEventListener('click', (e) => { if (!e.target.closest('[data-say]')) flip(); });
   card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
   $$('[data-ok]', host).forEach((b) => b.addEventListener('click', () => {
+    if (host.dataset.done) return;
+    host.dataset.done = '1';
+    $$('[data-ok]', host).forEach((x) => (x.disabled = true));
     const ok = b.dataset.ok === '1';
     record(w.id, ok, { type: 'vocab', cat: w.theme });
     playSound(ok ? 'correct' : 'wrong');
@@ -267,7 +270,7 @@ export function speakItem(host, it, onDone) {
         <p class="fr text-sm text-slate-500 dark:text-slate-400" lang="fr">${esc(k.fr)}</p>
       </div>
       <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-        <p class="text-sm font-bold text-slate-800 dark:text-slate-100">🗣️ ${tr('Nu jij! Antwoord hardop, in een hele zin.', 'À vous : répondez à voix haute, en phrase complète.')}</p>
+        <p class="text-sm font-bold text-slate-800 dark:text-slate-100">🗣️ ${it.kind === 'nazeggen' ? tr('Nu jij! Zeg de zin hardop na.', 'À vous : répétez la phrase à voix haute.') : tr('Nu jij! Antwoord hardop, in een hele zin.', 'À vous : répondez à voix haute, en phrase complète.')}</p>
         <div class="flex flex-wrap gap-2">
           ${canRecord ? `<button type="button" data-rec class="${BTN_SECONDARY}"><i class="fa-solid fa-microphone" aria-hidden="true"></i> <span>Opnemen</span></button>` : ''}
           ${canRecognize ? `<button type="button" data-check class="${BTN_SECONDARY}"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Controleer mijn antwoord</button>` : ''}
@@ -330,7 +333,7 @@ export function speakItem(host, it, onDone) {
       const all = alts.map(normText).join(' ');
       const found = (k.keys || []).filter((w) => all.includes(normText(w)));
       const good = it.kind === 'nazeggen' ? found.length >= Math.ceil(k.keys.length * 0.7) : found.length > 0;
-      out.innerHTML = `<p>De telefoon hoorde: <b lang="nl">„${esc(heard)}”</b></p>
+      out.innerHTML = `<p>De computer hoorde: <b lang="nl">„${esc(heard)}”</b></p>
         <p class="${good ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-300'} font-bold">${good ? tr('✓ De belangrijke woorden zijn er.', 'Les mots importants sont là.') : tr('De woorden zijn niet herkend. Probeer het nog eens, of kijk naar het voorbeeld.', 'Mots non reconnus. Réessayez ou regardez le modèle.')}</p>
         <p class="text-xs text-slate-500">${tr('Let op: de computer maakt soms fouten. Bij het examen luisteren mensen.', 'La reconnaissance automatique n’est pas parfaite : à l’examen, ce sont des personnes qui écoutent.')}</p>`;
     } catch (err) {
@@ -344,6 +347,9 @@ export function speakItem(host, it, onDone) {
     $('[data-text]', host).classList.remove('hidden');
   });
   $$('[data-rate]', host).forEach((b) => b.addEventListener('click', () => {
+    if (host.dataset.done) return;
+    host.dataset.done = '1';
+    $$('[data-rate]', host).forEach((x) => (x.disabled = true));
     const ok = b.dataset.rate === '1';
     record(it.id, ok, { type: 'speak', cat: it.kind });
     playSound(ok ? 'correct' : 'wrong');
@@ -606,11 +612,12 @@ export function session(host, cfg) {
   }
   setQuiet(!!cfg.exam);
 
+  host.classList.toggle('no-fr', !!cfg.exam);
   host.innerHTML = `
     <div class="max-w-xl mx-auto space-y-4">
       <div class="flex items-center justify-between gap-2">
         <a href="${cfg.backHash || '#/'}" data-quit class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 py-1 shrink-0"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Stoppen</a>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${t.tint} ${t.text} text-sm font-black truncate min-w-0">${icon(t.iconName, 'w-4 h-4 shrink-0')}<span class="truncate">${esc(cfg.title)}</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${t.tint} ${t.text} text-xs sm:text-sm font-black min-w-0 leading-tight">${icon(t.iconName, 'w-4 h-4 shrink-0')}<span class="line-clamp-2">${esc(cfg.title)}</span></span>
         <span class="shrink-0 min-w-[3.5rem] text-right">${cfg.exam
           ? `<span data-timer class="text-xs font-bold text-slate-500 tabular-nums">${cfg.timeLimit ? `⏳ ${Math.floor(cfg.timeLimit / 60)}:00` : '0:00'}</span>`
           : '<span data-combo aria-live="polite"></span>'}</span>
@@ -641,7 +648,7 @@ export function session(host, cfg) {
       const el = $('[data-timer]', host);
       if (el) {
         el.textContent = `${cfg.timeLimit ? '⏳ ' : ''}${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-        if (cfg.timeLimit && s <= 60) el.classList.add('text-red-600');
+        if (cfg.timeLimit && s <= 60) { el.classList.remove('text-slate-500'); el.classList.add('text-red-600'); }
       }
       if (cfg.timeLimit && s === 0 && !finished) finish(true);
     }, 1000);
@@ -741,7 +748,7 @@ export function session(host, cfg) {
           ${cfg.passMark ? `<p class="relative inline-block px-4 py-2 rounded-2xl bg-white ${passed ? 'text-emerald-700' : 'text-red-700'} text-sm font-black">${passed ? '✓ Geslaagd' : '✗ Nog niet geslaagd'} · grens ${cfg.passMark} / ${total}</p>` : ''}
         </div>
         ${timeUp || cfg.passNote || cfg.summaryExtra ? `<div class="${CARD} p-5 space-y-2 text-center">
-          ${timeUp ? `<p class="text-sm font-bold text-red-600">${tr(`De tijd is om: ${skipped} ${skipped > 1 ? 'vragen' : 'vraag'} zonder antwoord.`, `Temps écoulé : ${skipped} sans réponse.`)}</p>` : ''}
+          ${timeUp ? `<p class="text-sm font-bold text-red-600">${tr(`De tijd is om: ${skipped} ${skipped > 1 ? 'vragen' : 'vraag'} zonder antwoord.`, `Temps écoulé : ${skipped} question${skipped > 1 ? 's' : ''} sans réponse.`)}</p>` : ''}
           ${cfg.passNote ? `<p class="text-xs text-slate-500 dark:text-slate-400">${cfg.passNote}</p>` : ''}
           ${cfg.summaryExtra ? cfg.summaryExtra(results) : ''}
         </div>` : ''}

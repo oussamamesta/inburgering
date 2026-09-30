@@ -77,7 +77,7 @@ export function renderExamen(el, params) {
             <li>• Tijdens het examen zie je niet of je antwoord goed is. De uitslag komt aan het eind.</li>
             ${tr('', `Comme à l’examen officiel : ${EXAM_SIZE} questions à deux réponses, ${PASS_MARK} bonnes réponses pour réussir, 30 minutes. Pas de correction pendant l’examen : le bilan détaillé arrive à la fin.`)}
           </ul>
-          <p class="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 border border-amber-200 dark:border-amber-800 rounded-2xl p-3">${tri('Op het echte examen hoort bij elke vraag een foto uit het lespakket „Naar Nederland”. Oefen ook met dat pakket (naarnederland.nl).', 'Nos questions couvrent les mêmes thèmes mais ne sont pas les 100 questions officielles.')}</p>
+          <p class="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100 border border-amber-200 dark:border-amber-800 rounded-2xl p-3">${tri('Op het echte examen hoort bij elke vraag een foto uit het lespakket „Naar Nederland”. Oefen ook met dat pakket (naarnederland.nl).', 'À l’examen officiel, chaque question est accompagnée d’une photo du pack « Naar Nederland ». Entraînez-vous aussi avec ce pack (naarnederland.nl) : nos questions couvrent les mêmes thèmes, mais ce ne sont pas les questions officielles.')}</p>
           <a href="#/examen/start-societe" class="${BTN_PRIMARY} w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Start het examen</a>
         </div>
         ${historyList('kns')}
@@ -94,7 +94,7 @@ export function renderExamen(el, params) {
           <ul class="space-y-1.5">
             <li>• Net als op het examen: <b>9 korte teksten</b> uit het dagelijks leven (berichten, brieven, tabellen, advertenties).</li>
             <li>• <b>2 vragen per tekst</b> (18 in totaal), met <b>3 antwoorden</b>.</li>
-            <li>• <b>35 minuten.</b> Na de tijd tellen open vragen als fout.</li>
+            <li>• <b>35 minuten.</b> Is de tijd om? Dan tellen vragen zonder antwoord als fout.</li>
             ${tr('', 'Comme à l’examen depuis mai 2023 : 9 textes, 2 questions par texte (l’examen en compte environ 19), 3 réponses possibles, 35 minutes. Le bilan avec les explications arrive à la fin.')}
           </ul>
           <div class="rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 p-3 text-teal-950 dark:text-teal-100 space-y-1">
@@ -194,7 +194,7 @@ function weeklyReport() {
   return `<section class="${CARD} p-5 space-y-4">
     <h2 class="font-black dark:text-white flex items-center gap-2">${icon('chart', 'w-5 h-5')} Deze week <span class="text-xs font-bold text-slate-500">(laatste 7 dagen)</span></h2>
     <div class="grid grid-cols-3 gap-2 text-center">
-      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${now.days} / 7</div><div class="text-xs text-slate-500">dagen geleerd</div></div>
+      <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${now.days} / 7</div><div class="text-xs text-slate-500">dagen geoefend</div></div>
       <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${mastered}</div><div class="text-xs text-slate-500">nieuw geleerd</div></div>
       <div class="rounded-2xl bg-slate-50 dark:bg-slate-900/60 p-3"><div class="text-xl font-black text-delftBlue dark:text-white">${aNow} %</div><div class="text-xs text-slate-500">goed${delta !== null ? ` (${delta >= 0 ? '+' : ''}${delta} t.o.v. vorige week)` : ''}</div></div>
     </div>
@@ -202,7 +202,7 @@ function weeklyReport() {
     ${weakCats.length ? `<div class="text-sm"><p class="font-bold text-red-700 dark:text-red-400">${tri('Nog oefenen', 'à retravailler')}</p><ul class="space-y-1">${weakCats.map((c) => `<li><a href="${catLink(c.k)}" class="underline text-slate-700 dark:text-slate-300">${esc(catLabel(c.k))}: ${c.a} % van ${c.n} antwoorden</a></li>`).join('')}</ul></div>` : ''}
     <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-4 text-sm text-amber-950 dark:text-amber-100 space-y-2">
       <p class="font-black flex items-center gap-2">${icon('target', 'w-5 h-5')} ${tri('Doel voor volgende week', 'objectif de la semaine')}</p>
-      <p>Eerst: <b>${esc(focus.label)}</b>. Leer minstens ${Math.min(7, Math.max(4, now.days + 1))} dagen${parts[0].exams ? '' : ` en doe een oefenexamen ${PARTS[parts[0].k].label}`}.</p>
+      <p>Eerst: <b>${esc(focus.label)}</b>. Oefen minstens ${Math.min(7, Math.max(4, now.days + 1))} dagen${parts[0].exams ? '' : ` en doe een oefenexamen ${PARTS[parts[0].k].label}`}.</p>
       <a href="${focus.href}" class="${BTN_PRIMARY}">Begin nu</a>
     </div>
   </section>`;
@@ -227,7 +227,7 @@ export function renderProgres(el) {
       ${weeklyReport()}
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <!-- 4 indicateurs -->
-        ${stat(streakInfo().count + ' dagen', 'Reeks')}
+        ${stat(streakInfo().count + (streakInfo().count === 1 ? ' dag' : ' dagen'), 'Reeks')}
         ${stat(`${tot.mastered}/${tot.total}`, 'Geleerd')}
         ${stat(tot.seen ? Math.round((tot.firstOk / tot.seen) * 100) + ' %' : '—', 'In één keer goed')}
         ${stat(acc7 === null ? '—' : acc7 + ' %', 'Goed (7 dagen)')}

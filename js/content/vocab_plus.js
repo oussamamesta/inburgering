@@ -8,6 +8,7 @@ const n = (nl, art, pl, fr, ex, exFr) => rows.push([nl, art, 'n', fr, ex, exFr, 
 const v = (nl, fr, ex, exFr) => rows.push([nl, null, 'v', fr, ex, exFr, theme, null]);
 const j = (nl, fr, ex, exFr) => rows.push([nl, null, 'adj', fr, ex, exFr, theme, null]);
 const a = (nl, fr, ex, exFr) => rows.push([nl, null, 'x', fr, ex, exFr, theme, null]);
+const b = (nl, fr, ex, exFr) => rows.push([nl, null, 'adv', fr, ex, exFr, theme, null]);
 
 T('Personnes');
 n('moeder', 'de', 'moeders', 'la mère', 'Mijn moeder woont in Rabat.', 'Ma mère habite à Rabat.');
@@ -107,7 +108,7 @@ n('verwarming', 'de', null, 'le chauffage', 'De verwarming doet het niet.', 'Le 
 n('koelkast', 'de', 'koelkasten', 'le réfrigérateur', 'De melk staat in de koelkast.', 'Le lait est au frigo.');
 n('wasmachine', 'de', 'wasmachines', 'la machine à laver', 'De wasmachine is kapot.', 'La machine à laver est en panne.');
 n('vuilnisbak', 'de', 'vuilnisbakken', 'la poubelle', 'Gooi het in de vuilnisbak.', 'Jette-le à la poubelle.');
-n('afval', 'het', null, 'les déchets', 'Het afval gaat buiten.', 'Les déchets vont dehors.');
+n('afval', 'het', null, 'les déchets', 'Het afval moet naar buiten.', 'Les déchets doivent être sortis.');
 n('buurt', 'de', 'buurten', 'le quartier', 'Het is een rustige buurt.', 'C’est un quartier calme.');
 n('huisnummer', 'het', 'huisnummers', 'le numéro de maison', 'Wat is uw huisnummer?', 'Quel est votre numéro ?');
 n('bel', 'de', 'bellen', 'la sonnette', 'De bel doet het niet.', 'La sonnette ne marche pas.');
@@ -122,8 +123,8 @@ j('vies', 'sale', 'Mijn schoenen zijn vies.', 'Mes chaussures sont sales.');
 j('kapot', 'cassé, en panne', 'Mijn fiets is kapot.', 'Mon vélo est cassé.');
 j('open', 'ouvert', 'De winkel is open.', 'Le magasin est ouvert.');
 j('dicht', 'fermé', 'De deur is dicht.', 'La porte est fermée.');
-a('boven', 'en haut', 'De slaapkamer is boven.', 'La chambre est en haut.');
-a('beneden', 'en bas', 'De keuken is beneden.', 'La cuisine est en bas.');
+b('boven', 'en haut', 'De slaapkamer is boven.', 'La chambre est en haut.');
+b('beneden', 'en bas', 'De keuken is beneden.', 'La cuisine est en bas.');
 
 T('Alimentation');
 n('kaas', 'de', 'kazen', 'le fromage', 'Ik eet brood met kaas.', 'Je mange du pain avec du fromage.');
@@ -148,7 +149,7 @@ n('sap', 'het', 'sappen', 'le jus', 'Een glas sap, alstublieft.', 'Un verre de j
 n('glas', 'het', 'glazen', 'le verre', 'Het glas is leeg.', 'Le verre est vide.');
 n('kopje', 'het', 'kopjes', 'la tasse', 'Wil je een kopje thee?', 'Tu veux une tasse de thé ?');
 n('bord', 'het', 'borden', 'l’assiette', 'Zet de borden op tafel.', 'Mets les assiettes sur la table.');
-n('mes', 'het', 'messen', 'le couteau', 'Het mes is scherp.', 'Le couteau est pointu.');
+n('mes', 'het', 'messen', 'le couteau', 'Het mes is scherp.', 'Le couteau est tranchant.');
 n('vork', 'de', 'vorken', 'la fourchette', 'Ik eet met een vork.', 'Je mange avec une fourchette.');
 n('lepel', 'de', 'lepels', 'la cuillère', 'Soep eet je met een lepel.', 'La soupe se mange avec une cuillère.');
 n('lunch', 'de', 'lunches', 'le déjeuner', 'De lunch is om twaalf uur.', 'Le déjeuner est à midi.');
@@ -232,7 +233,7 @@ j('nieuw', 'neuf, nouveau', 'Ik heb een nieuwe telefoon.', 'J’ai un nouveau t�
 
 T('Temps & calendrier');
 n('dag', 'de', 'dagen', 'le jour', 'Een week heeft zeven dagen.', 'Une semaine a sept jours.');
-n('maand', 'de', 'maanden', 'le mois', 'Ik woon hier drie maanden.', 'J’habite ici depuis trois mois.');
+n('maand', 'de', 'maanden', 'le mois', 'Ik woon hier al drie maanden.', 'J’habite ici depuis trois mois.');
 n('uur', 'het', 'uren', 'l’heure', 'Het is drie uur.', 'Il est trois heures.');
 n('minuut', 'de', 'minuten', 'la minute', 'Wacht vijf minuten.', 'Attends cinq minutes.');
 n('middag', 'de', 'middagen', 'l’après-midi', 'Tot vanmiddag!', 'À cet après-midi !');
@@ -266,21 +267,21 @@ a('september', 'septembre', 'In september begint de school.', 'En septembre, l�
 a('oktober', 'octobre', 'In oktober vallen de bladeren.', 'En octobre, les feuilles tombent.');
 a('november', 'novembre', 'November is grijs.', 'Novembre est gris.');
 a('december', 'décembre', 'In december is Sinterklaas.', 'En décembre, c’est la Saint-Nicolas.');
-a('nu', 'maintenant', 'Ik kom nu.', 'J’arrive maintenant.');
-a('straks', 'tout à l’heure', 'Tot straks!', 'À tout à l’heure !');
-a('altijd', 'toujours', 'Hij is altijd op tijd.', 'Il est toujours à l’heure.');
-a('nooit', 'jamais', 'Ik rook nooit.', 'Je ne fume jamais.');
-a('soms', 'parfois', 'Soms fiets ik naar mijn werk.', 'Parfois, je vais au travail à vélo.');
-a('vaak', 'souvent', 'Het regent vaak.', 'Il pleut souvent.');
+b('nu', 'maintenant', 'Ik kom nu.', 'J’arrive maintenant.');
+b('straks', 'tout à l’heure', 'Tot straks!', 'À tout à l’heure !');
+b('altijd', 'toujours', 'Hij is altijd op tijd.', 'Il est toujours à l’heure.');
+b('nooit', 'jamais', 'Ik rook nooit.', 'Je ne fume jamais.');
+b('soms', 'parfois', 'Soms fiets ik naar mijn werk.', 'Parfois, je vais au travail à vélo.');
+b('vaak', 'souvent', 'Het regent vaak.', 'Il pleut souvent.');
 a('elke dag', 'chaque jour', 'Ik leer elke dag Nederlands.', 'J’apprends le néerlandais chaque jour.');
 a('op tijd', 'à l’heure', 'Kom op tijd!', 'Viens à l’heure !');
 a('volgende week', 'la semaine prochaine', 'Volgende week heb ik vakantie.', 'La semaine prochaine, je suis en vacances.');
-a('vanavond', 'ce soir', 'Vanavond kook ik.', 'Ce soir, je cuisine.');
+b('vanavond', 'ce soir', 'Vanavond kook ik.', 'Ce soir, je cuisine.');
 
 T('Nombres');
 a('één', 'un', 'Ik heb één kind.', 'J’ai un enfant.');
 a('twee', 'deux', 'Twee koffie, alstublieft.', 'Deux cafés, s’il vous plaît.');
-a('drie', 'trois', 'Ik woon hier drie jaar.', 'J’habite ici depuis trois ans.');
+a('drie', 'trois', 'Ik woon hier al drie jaar.', 'J’habite ici depuis trois ans.');
 a('vier', 'quatre', 'De les duurt vier uur.', 'Le cours dure quatre heures.');
 a('vijf', 'cinq', 'Het kost vijf euro.', 'Ça coûte cinq euros.');
 a('zes', 'six', 'We eten om zes uur.', 'Nous mangeons à six heures.');
@@ -343,11 +344,11 @@ v('overstappen', 'changer (de train)', 'U moet overstappen in Utrecht.', 'Vous d
 v('wachten', 'attendre', 'Ik wacht op de bus.', 'J’attends le bus.');
 v('parkeren', 'se garer', 'Waar kan ik parkeren?', 'Où puis-je me garer ?');
 v('oversteken', 'traverser', 'Steek hier over.', 'Traversez ici.');
-a('rechtdoor', 'tout droit', 'Ga rechtdoor.', 'Allez tout droit.');
-a('dichtbij', 'tout près', 'De winkel is dichtbij.', 'Le magasin est tout près.');
-a('ver', 'loin', 'Het station is ver.', 'La gare est loin.');
-a('hier', 'ici', 'Ik woon hier.', 'J’habite ici.');
-a('daar', 'là-bas', 'De bus stopt daar.', 'Le bus s’arrête là-bas.');
+b('rechtdoor', 'tout droit', 'Ga rechtdoor.', 'Allez tout droit.');
+b('dichtbij', 'tout près', 'De winkel is dichtbij.', 'Le magasin est tout près.');
+b('ver', 'loin', 'Het station is ver.', 'La gare est loin.');
+b('hier', 'ici', 'Ik woon hier.', 'J’habite ici.');
+b('daar', 'là-bas', 'De bus stopt daar.', 'Le bus s’arrête là-bas.');
 
 T('Travail & école');
 n('baan', 'de', 'banen', 'l’emploi, le poste', 'Ik zoek een baan.', 'Je cherche un emploi.');
@@ -358,7 +359,7 @@ n('bedrijf', 'het', 'bedrijven', 'l’entreprise', 'Het bedrijf is groot.', 'L�
 n('werkgever', 'de', 'werkgevers', 'l’employeur', 'Mijn werkgever is tevreden.', 'Mon employeur est satisfait.');
 n('vacature', 'de', 'vacatures', 'l’offre d’emploi', 'Ik lees de vacature.', 'Je lis l’offre d’emploi.');
 n('sollicitatie', 'de', 'sollicitaties', 'la candidature', 'Ik schrijf een sollicitatie.', 'J’écris une candidature.');
-n('ervaring', 'de', 'ervaringen', 'l’expérience', 'Ik heb ervaring in de zorg.', 'J’ai de l’expérience dans le soin.');
+n('ervaring', 'de', 'ervaringen', 'l’expérience', 'Ik heb ervaring in de zorg.', 'J’ai de l’expérience dans le secteur des soins.');
 n('computer', 'de', 'computers', 'l’ordinateur', 'Ik werk op de computer.', 'Je travaille sur l’ordinateur.');
 n('telefoon', 'de', 'telefoons', 'le téléphone', 'Mijn telefoon is leeg.', 'Mon téléphone est déchargé.');
 n('e-mail', 'de', 'e-mails', 'l’e-mail', 'Ik stuur een e-mail.', 'J’envoie un e-mail.');
@@ -439,7 +440,7 @@ j('bewolkt', 'nuageux', 'Het is bewolkt.', 'Le temps est nuageux.');
 j('nat', 'mouillé', 'Mijn jas is nat.', 'Mon manteau est mouillé.');
 j('leuk', 'sympa, amusant', 'Het feest was leuk.', 'La fête était sympa.');
 j('gezellig', 'convivial, agréable', 'Het is gezellig hier.', 'C’est agréable ici.');
-a('graag', 'volontiers, aimer (faire)', 'Ik lees graag.', 'J’aime lire.');
+b('graag', 'volontiers, aimer (faire)', 'Ik lees graag.', 'J’aime lire.');
 
 T('Verbes courants');
 v('zijn', 'être', 'Ik ben moe.', 'Je suis fatigué.');
@@ -511,7 +512,7 @@ j('vriendelijk', 'aimable', 'De buurman is vriendelijk.', 'Le voisin est aimable
 j('verkeerd', 'mauvais, erroné', 'Ik heb het verkeerde nummer.', 'J’ai le mauvais numéro.');
 j('bekend', 'connu', 'Dit is een bekend liedje.', 'C’est une chanson connue.');
 j('anders', 'différent, autrement', 'Het is hier anders.', 'C’est différent ici.');
-a('samen', 'ensemble', 'We eten samen.', 'Nous mangeons ensemble.');
+b('samen', 'ensemble', 'We eten samen.', 'Nous mangeons ensemble.');
 a('wat', 'que, quoi', 'Wat is dat?', 'Qu’est-ce que c’est ?');
 a('wie', 'qui', 'Wie is dat?', 'Qui est-ce ?');
 a('waar', 'où', 'Waar woont u?', 'Où habitez-vous ?');
@@ -537,12 +538,12 @@ a('in', 'dans', 'De melk is in de koelkast.', 'Le lait est dans le frigo.');
 a('bij', 'chez, près de', 'Ik ben bij de dokter.', 'Je suis chez le médecin.');
 a('naar', 'vers, à', 'Ik ga naar Amsterdam.', 'Je vais à Amsterdam.');
 a('uit', 'de (provenance)', 'Ik kom uit Tunesië.', 'Je viens de Tunisie.');
-a('ook', 'aussi', 'Ik wil ook koffie.', 'Moi aussi, je veux un café.');
+b('ook', 'aussi', 'Ik wil ook koffie.', 'Moi aussi, je veux un café.');
 a('niet', 'ne… pas', 'Ik weet het niet.', 'Je ne sais pas.');
 a('geen', 'pas de', 'Ik heb geen auto.', 'Je n’ai pas de voiture.');
-a('misschien', 'peut-être', 'Misschien kom ik morgen.', 'Peut-être que je viens demain.');
-a('heel', 'très', 'Het is heel warm.', 'Il fait très chaud.');
-a('te', 'trop', 'Het is te duur.', 'C’est trop cher.');
+b('misschien', 'peut-être', 'Misschien kom ik morgen.', 'Peut-être que je viens demain.');
+b('heel', 'très', 'Het is heel warm.', 'Il fait très chaud.');
+b('te', 'trop', 'Het is te duur.', 'C’est trop cher.');
 a('pardon', 'pardon, excusez-moi', 'Pardon, waar is het station?', 'Excusez-moi, où est la gare ?');
 a('sorry', 'désolé', 'Sorry, ik ben te laat.', 'Désolé, je suis en retard.');
 a('goedemorgen', 'bonjour (le matin)', 'Goedemorgen, meneer!', 'Bonjour, monsieur !');

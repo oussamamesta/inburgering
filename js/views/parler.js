@@ -41,7 +41,7 @@ export function render(el, params) {
         <p><b>Deel 1:</b> ${tri('ongeveer 10 vragen over jezelf. Antwoord met een hele zin.', 'une dizaine de questions sur vous-même ; phrase complète, en reprenant le verbe de la question.')}</p>
         <p><b>Deel 2:</b> ${tri('ongeveer 12 zinnen afmaken. Je hoort een zin en het begin van een tweede zin.', 'une douzaine de phrases à terminer : vous entendez une phrase, puis le début d’une autre.')}</p>
         ${tr('<span class="text-xs text-slate-500 dark:text-slate-400">Luister, antwoord hardop, vergelijk met het voorbeeld en wees eerlijk.</span>', 'Écoutez, répondez à voix haute, comparez avec le modèle et évaluez-vous honnêtement : ce qui est « à retravailler » reviendra plus souvent.')}
-        ${canRecord || canRecognize ? `<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">${icon('mic', 'w-4 h-4')} ${tri('Je kunt jezelf ook opnemen of je antwoord laten controleren.', 'si le navigateur l’autorise')}</p>` : ''}
+        ${canRecord || canRecognize ? `<p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">${icon('mic', 'w-4 h-4')} ${tri('Je kunt jezelf ook opnemen of je antwoord laten controleren.', 'vous pouvez aussi vous enregistrer ou faire vérifier votre réponse (si le navigateur l’autorise)')}</p>` : ''}
       </div>
       ${card('#/parler/questions', 'mensen', 'Deel 1: vragen beantwoorden', 'Partie 1 : répondre à des questions', `${SPEAK_QUESTIONS.length} vragen over jezelf, met voorbeeldantwoorden.`, SPEAK_QUESTIONS)}
       ${card('#/parler/completer', 'pencil', 'Deel 2: zinnen afmaken', 'Partie 2 : compléter des phrases', `${SPEAK_COMPLETE.length} zinnen uit het dagelijks leven.`, SPEAK_COMPLETE)}
@@ -79,8 +79,8 @@ function speakExam(el) {
       <div class="max-w-xl mx-auto space-y-4 animate-pop">
         ${pageHero('parler', 'Oefenexamen Spreken', '', ['10 vragen + 12 zinnen', '60 sec. per antwoord'], 'Examen blanc : expression orale')}
         <div class="${CARD} p-5 space-y-3 text-sm text-slate-700 dark:text-slate-300">
-          <p>• <b>Deel 1:</b> 10 vragen over het dagelijks leven. <b>Deel 2:</b> 12 zinnen afmaken, vaak met een plaatje.</p>
-          <p>• Je hoort elke vraag <b>één keer</b>, zonder tekst. Daarna heb je <b>maximaal 60 seconden</b>. Een kort en compleet antwoord is genoeg.</p>
+          <p>• <b>Deel 1:</b> 10 vragen over jezelf en het dagelijks leven. <b>Deel 2:</b> 12 zinnen afmaken, vaak met een plaatje.</p>
+          <p>• Je hoort elke vraag <b>één keer</b>. Bij deel 1 zie je geen tekst. Daarna heb je <b>maximaal 60 seconden</b>. Een kort en compleet antwoord is genoeg.</p>
           <p>• Aan het eind vergelijk je met het voorbeeld: 1 punt voor een goed antwoord, 1 punt voor goede uitspraak (44 punten).</p>
           ${tr('', 'Chaque question est lue une seule fois, sans texte ; 60 secondes maximum pour répondre. À la fin : 1 point si la réponse est adaptée, 1 point si la prononciation est compréhensible. La durée et la notation viennent des guides de préparation ; DUO publie peu de détails. À l’examen, deux examinateurs notent.')}
           ${canRecord ? `<label class="flex items-center gap-3 font-bold text-slate-800 dark:text-white pt-1"><input type="checkbox" data-mic class="w-6 h-6 accent-orange-600"> ${tri('Neem mijn antwoorden op', 'enregistrer pour réécouter')}</label>` : ''}

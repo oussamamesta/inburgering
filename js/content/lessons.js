@@ -33,7 +33,7 @@ export const GRAMMAR_Q = [
   { id: 'gr01', q: 'Welk lidwoord hoort bij ‘huis’?', qFr: 'Quel article va avec « huis » (maison) ?', opts: ['de', 'het'], corr: 1,
     expl: 'On dit « het huis ». Environ deux tiers des noms prennent « de » ; les mots en -je (diminutifs) prennent toujours « het ». Apprenez chaque nom avec son article.' },
   { id: 'gr02', q: 'Ik heb … auto.', qFr: 'Je n’ai pas de voiture.', opts: ['niet', 'geen', 'niets'], corr: 1,
-    expl: 'Devant un nom sans « de/het », on utilise « geen ». « Niet » sert pour le reste : Ik werk niet. Het is niet duur.' },
+    expl: 'Devant un nom avec « een » ou sans article, on utilise « geen » (een auto → geen auto). « Niet » sert pour le reste : Ik werk niet. Het is niet duur.' },
   { id: 'gr03', q: 'Morgen … ik werken.', qFr: 'Demain, je vais travailler.', opts: ['ga', 'gaan', 'gaat'], corr: 0,
     expl: 'Avec « ik », le verbe est le radical : ik ga. Le verbe reste en 2e position, avant le sujet, car la phrase commence par « morgen ».' },
   { id: 'gr04', q: 'Wat is het meervoud van ‘kind’?', qFr: 'Quel est le pluriel de « kind » (enfant) ?', opts: ['kinds', 'kinderen', 'kinden'], corr: 1,
@@ -144,7 +144,7 @@ export const LISTENING = [
 // Deuxième question par texte (à l’examen : 2 questions par texte). Même document, autre question.
 const SECOND = {
   rd01: ['Hoeveel pakken melk betaalt u als u er 2 koopt?', 'Combien de briques de lait payez-vous si vous en prenez 2 ?', ['1 pak', '2 pakken', '3 pakken'], 0, '« 2 voor de prijs van 1 » = 2 pour le prix d’1.'],
-  rd02: ['Wie moet toestemming geven voor een kat?', 'Qui doit donner l’autorisation pour un chat ?', ['De buren', 'De verhuurder', 'De gemeente'], 1, 'La « verhuurder » est le propriétaire.'],
+  rd02: ['Wie moet toestemming geven voor een kat?', 'Qui doit donner l’autorisation pour un chat ?', ['De buren', 'De verhuurder', 'De gemeente'], 1, 'Le « verhuurder » est le propriétaire (le bailleur).'],
   rd03: ['Kunt u op zaterdag naar de praktijk?', 'Pouvez-vous aller au cabinet le samedi ?', ['Ja, de hele dag', 'Nee, de praktijk is dan gesloten', 'Alleen ’s ochtends'], 1, '« Zaterdag en zondag gesloten » = fermé le samedi et le dimanche.'],
   rd04: ['Wanneer haalt u de container weer binnen?', 'Quand rentrez-vous la poubelle ?', ['Vóór 19.00 uur', 'De volgende ochtend', 'Na een week'], 0, '« Haal hem … vóór 19.00 uur weer binnen » = rentrez-la avant 19 h.'],
   rd05: ['Waar is de barbecue?', 'Où a lieu le barbecue ?', ['In het park', 'In de binnentuin', 'Op het strand'], 1, '« De binnentuin » = la cour intérieure.'],

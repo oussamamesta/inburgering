@@ -136,7 +136,7 @@ function docList(el, params, { key, title, titleFr, sub, list: all, label, iconN
   if (params[0] === 'tout') return runIn(el, { title, ids, ...back });
   if (params[0] !== undefined) {
     const start = Number(params[0]);
-    if (start >= 0 && start < list.length) return runIn(el, { title, ids: idsFrom(start), ...back });
+    if (start >= 0 && start < list.length) return runIn(el, { title: label(list[start], start), ids: all.filter((x) => group(x) === group(list[start])).map((x) => x.id), ...back });
   }
   const s = summary(ids);
   el.innerHTML = `

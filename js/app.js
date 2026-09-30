@@ -124,7 +124,7 @@ on('xp', ({ gain }) => {
   updateHud.t = setTimeout(() => b.classList.add('hidden'), 1000);
 });
 on('levelup', (lv) => celebrateCard(lv.tier.icon, `Niveau ${lv.level}!`, tr(`Je bent nu <b>${lv.tier.nl}</b>. Ga zo door!`, `Vous êtes « ${lv.tier.nl} » (${lv.tier.fr}). Continuez comme ça !`)));
-on('goal', ({ streak }) => celebrateCard('🔥', 'Doel gehaald!', tr(`<b>${streak} ${streak > 1 ? 'dagen' : 'dag'}</b> op rij. Tot morgen!`, 'Objectif du jour atteint. Revenez demain pour prolonger la série.')));
+on('goal', ({ streak }) => celebrateCard('🔥', 'Doel gehaald!', tr(`<b>${streak} ${streak > 1 ? 'dagen' : 'dag'}</b> op rij. Tot morgen!`, `Objectif atteint : ${streak} jour${streak > 1 ? 's' : ''} de suite. À demain !`)));
 
 document.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
 document.addEventListener('keydown', unlockAudio, { once: true });
@@ -144,12 +144,13 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (e.target.closest('[data-open-more]')) openSheet();
-  else if (e.target.closest('[data-close-more]') || e.target === sheet()) closeSheet();
+  else if (e.target.closest('[data-close-more]') || e.target === sheet() || e.target.closest('#moreSheet a')) closeSheet();
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
 route();
 setInterval(updateHud, 60000);
+window.addEventListener('hud', updateHud);
 
 // Mode hors ligne : le « service worker » garde une copie de l’application.
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

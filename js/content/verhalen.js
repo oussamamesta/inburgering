@@ -56,7 +56,7 @@ export const STORIES = [
     id: 'regen', title: 'Regen!', fr: 'De la pluie !', minutes: 3,
     scenes: [
       [L('Het is november. Het regent weer.', 'C’est novembre. Il pleut encore.'), L('Yusuf heeft een paraplu, maar het waait hard.', 'Yusuf a un parapluie, mais le vent souffle fort.'), L('Zijn paraplu gaat kapot!', 'Son parapluie se casse !')],
-      [L('Hij wacht bij de bushalte.', 'Il attend à l’arrêt de bus.'), L('De bus is tien minuten te laat.', 'Le bus a dix minutes de retard.'), L('Yusuf is nat en koud.', 'Yusuf est mouillé et a froid.')],
+      [L('Hij wacht bij de bushalte.', 'Il attend à l’arrêt de bus.'), L('De bus is tien minuten te laat.', 'Le bus a dix minutes de retard.'), L('Yusuf is nat en hij heeft het koud.', 'Yusuf est mouillé et a froid.')],
       [L('Hij gaat naar een café.', 'Il va dans un café.'), L('Hij bestelt een warme chocolademelk.', 'Il commande un chocolat chaud.'), L('Een vrouw zegt: „Typisch Nederlands weer, hè?”', 'Une femme dit : « Un temps typiquement néerlandais, hein ? »'), L('Ze lachen allebei.', 'Ils rient tous les deux.')],
       [L('Na een uur stopt de regen.', 'Au bout d’une heure, la pluie s’arrête.'), L('Er is een regenboog boven de stad.', 'Il y a un arc-en-ciel au-dessus de la ville.'), L('Nederlanders zeggen: „Er is geen slecht weer, alleen slechte kleren.”', 'Les Néerlandais disent : « Il n’y a pas de mauvais temps, seulement de mauvais vêtements. »')],
     ],
@@ -70,7 +70,7 @@ export const STORIES = [
   {
     id: 'markt', title: 'Op de markt', fr: 'Au marché', minutes: 3,
     scenes: [
-      [L('Elke zaterdag is er markt op het plein.', 'Chaque samedi, il y a un marché sur la place.'), L('Fatima gaat met een grote tas.', 'Fatima y va avec un grand sac.'), L('Er zijn kramen met groente, fruit, kaas en vis.', 'Il y a des étals de légumes, de fruits, de fromage et de poisson.')],
+      [L('Elke zaterdag is er markt op het plein.', 'Chaque samedi, il y a un marché sur la place.'), L('Fatima gaat erheen met een grote tas.', 'Fatima y va avec un grand sac.'), L('Er zijn kramen met groente, fruit, kaas en vis.', 'Il y a des étals de légumes, de fruits, de fromage et de poisson.')],
       [L('Bij de fruitkraam koopt ze appels.', 'À l’étal de fruits, elle achète des pommes.'), L('„Een kilo appels, alstublieft.”', '« Un kilo de pommes, s’il vous plaît. »'), L('„Dat is twee euro vijftig,” zegt de man.', '« Ça fait deux euros cinquante », dit l’homme.')],
       [L('Bij de kaaskraam mag ze proeven.', 'À l’étal de fromage, elle peut goûter.'), L('„Jong of oud?” vraagt de verkoopster.', '« Jeune ou vieux ? » demande la vendeuse.'), L('Fatima neemt een stuk jonge kaas.', 'Fatima prend un morceau de fromage jeune.')],
       [L('Ze koopt ook een bos tulpen voor vijf euro.', 'Elle achète aussi un bouquet de tulipes pour cinq euros.'), L('Haar tas is vol en zwaar.', 'Son sac est plein et lourd.'), L('„Fijne dag!” zegt de bloemenman.', '« Bonne journée ! » dit le fleuriste.')],
@@ -120,9 +120,9 @@ export const STORIES = [
       [L('Overal is muziek.', 'Il y a de la musique partout.'), L('Mensen dansen en zingen op straat.', 'Les gens dansent et chantent dans la rue.'), L('Sanne eet een tompouce met oranje glazuur.', 'Sanne mange un tompouce avec un glaçage orange.')],
       [L('’s Avonds is Sanne moe, maar blij.', 'Le soir, Sanne est fatiguée, mais contente.'), L('Ze heeft vijftien euro verdiend.', 'Elle a gagné quinze euros.'), L('Volgend jaar doet ze weer mee!', 'L’année prochaine, elle participera encore !')],
     ],
-    words: [L('de koning', 'le roi'), L('jarig zijn', 'fêter son anniversaire'), L('oranje', 'orange'), L('de vrijmarkt', 'le marché libre'), L('de spullen', 'les affaires'), L('verkopen', 'vendre'), L('dansen', 'danser'), L('moe', 'fatigué')],
+    words: [L('de koning', 'le roi'), L('jarig zijn', 'avoir son anniversaire'), L('oranje', 'orange'), L('de vrijmarkt', 'le marché libre'), L('de spullen', 'les affaires'), L('verkopen', 'vendre'), L('dansen', 'danser'), L('moe', 'fatigué')],
     qs: [
-      Q('Wanneer is het Koningsdag?', 'Quand est-ce le jour du Roi ?', ['Op 27 april', 'Op 5 mei', 'Op 25 december'], ['Le 27 avril', 'Le 5 mai', 'Le 25 décembre']),
+      Q('Wanneer is het Koningsdag?', 'Quand a lieu le jour du Roi ?', ['Op 27 april', 'Op 5 mei', 'Op 25 december'], ['Le 27 avril', 'Le 5 mai', 'Le 25 décembre']),
       Q('Welke kleur dragen veel mensen?', 'Quelle couleur portent beaucoup de gens ?', ['Oranje', 'Blauw', 'Groen'], ['Orange', 'Bleu', 'Vert']),
       Q('Wat verkoopt Sanne?', 'Que vend Sanne ?', ['Boeken en een lamp', 'Kaas', 'Bloemen'], ['Des livres et une lampe', 'Du fromage', 'Des fleurs']),
     ],

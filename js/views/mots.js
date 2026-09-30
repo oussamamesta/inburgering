@@ -100,7 +100,7 @@ export function renderDico(el) {
   const draw = () => {
     const q = norm(input.value.trim());
     const rows = [...VOCAB].sort((a, b) => a.nl.localeCompare(b.nl, 'nl')).filter((w) => !q || norm(w.nl).includes(q) || norm(w.fr).includes(q));
-    el.querySelector('[data-count]').textContent = `${rows.length} resultaten`;
+    el.querySelector('[data-count]').textContent = `${rows.length} ${rows.length === 1 ? 'resultaat' : 'resultaten'}`;
     list.innerHTML = rows.map((w) => {
       const it = get(w.id);
       const dot = !it ? 'bg-slate-300 dark:bg-slate-600' : it.box >= MASTERED_BOX ? 'bg-emerald-500' : 'bg-amber-400';

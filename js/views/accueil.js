@@ -43,7 +43,7 @@ function todayCard(plan) {
   const done = Math.min(plan.doneToday, plan.size);
   const countdown = plan.days === null
     ? `<a href="#date" class="underline font-bold">📅 ${tri('Wanneer is je examen?', 'Date de l’examen ?')}</a>`
-    : plan.days > 0 ? `📅 ${tri(`Examen over <b>${plan.days}</b> ${plan.days > 1 ? 'dagen' : 'dag'}`, `dans ${plan.days} jours`)}`
+    : plan.days > 0 ? `📅 ${tri(`Examen over <b>${plan.days}</b> ${plan.days > 1 ? 'dagen' : 'dag'}`, `dans ${plan.days} jour${plan.days > 1 ? 's' : ''}`)}`
       : plan.days === 0 ? `📅 ${tri('Vandaag is je examen. Succes!', 'Bonne chance !')}` : '📅 Examendatum voorbij · <a href="#/reglages" class="underline">wijzigen</a>';
 
   return `<section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-700 to-dutchOrange text-white p-5 shadow-xl space-y-4 animate-rise">
@@ -62,7 +62,7 @@ function todayCard(plan) {
     ${plan.size
       ? `<a href="#/plan" class="relative flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-white text-orange-700 font-black shadow-md touch-active">
           <i class="fa-solid fa-play" aria-hidden="true"></i> ${done >= plan.size ? tri('Nog een les', 'Refaire une séance') : done > 0 ? tri(`Ga verder (${done}/${plan.size})`, 'Continuer') : tri('Begin de les van vandaag', 'Commencer la séance du jour')}</a>`
-      : `<a href="#/examen" class="relative flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-white text-orange-700 font-black shadow-md touch-active">${icon('trophy', 'w-5 h-5')} ${tri('Alles gedaan! Een oefenexamen?', 'Tout est à jour')}</a>`}
+      : `<a href="#/examen" class="relative flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-white text-orange-700 font-black shadow-md touch-active">${icon('trophy', 'w-5 h-5')} ${tri('Alles gedaan! Een oefenexamen?', 'Tout est fait ! Un examen blanc ?')}</a>`}
     ${st.restUsedThisWeek ? `<p class="relative text-[11px] text-white/90">😴 ${tr('Rustdag gebruikt deze week: je reeks blijft staan.', 'Jour de repos utilisé : votre série est protégée.')}</p>` : ''}
   </section>`;
 }

@@ -93,9 +93,9 @@ const RULES = [
 
 // Choix explicites quand le sujet n’est pas reconnu correctement par les règles.
 const OVERRIDES = {
-  kns049: '🏛️🗳️', kns062: '🛂🏛️', kns064: '👛💳🔒', kns066: '🚲👮', kns067: '🏛️📄', kns077: '✋🚫',
-  kns097: '🎁🍪', kns101: '💬📖', kns105: '💬👩‍⚕️', kns106: '🎓🇳🇱', kns107: '🎓💶', kns118: '👩🗳️',
-  kns120: '💶', kns137: '👶💉', kns144: '🧒➡️🧑', kns147: '💳🩺', kns162: '🏠🤝', kns163: '🚌👵💺',
+  kns008: '💊🏪', kns034: '🏫💶', kns049: '🏛️🗳️', kns062: '🛂🏛️', kns064: '👛💳🔒', kns066: '🚲👮', kns067: '🏛️📄', kns072: '🗣️💬', kns073: '⏰🤝', kns077: '✋🚫',
+  kns086: '🚶🦓🚗', kns097: '🎁🍪', kns101: '💬📖', kns105: '💬👩‍⚕️', kns106: '🎓🇳🇱', kns107: '🎓💶', kns116: '🏭👷', kns118: '👩🗳️',
+  kns120: '💶', kns126: '🏠📋⏳', kns127: '🏠💶', kns136: '👩🟰👨', kns137: '👶💉', kns144: '🧒➡️🧑', kns147: '💳🩺', kns148: '😔💬👩‍⚕️', kns162: '🏠🤝', kns163: '🚌👵💺', kns164: '🙅💬',
 };
 
 export function knsPicture(q, fallbackIcon) {
